@@ -1,99 +1,37 @@
 direction: right
 
-classes: {
-  core: {
-    style: {
-      fill: "#151522"
-      stroke: "#7c6cff"
-      stroke-width: 2
-      border-radius: 14
-      font-color: "#ffffff"
-    }
-  }
+browser: "🌐 Browser"
+studio: "🖥️ Apex Studio UI"
+api: "⚡ FastAPI Backend"
+intel: "🧠 Intelligence Engine"
+router: "🧭 Model Router"
+ollama: "🦙 Ollama"
+models: "🤖 Local LLMs"
+memory: "💾 Long-Term Memory"
+rag: "📚 1M Q&A RAG"
+embed: "🔎 Embeddings"
+image: "🎨 Local Image Studio"
 
-  service: {
-    style: {
-      fill: "#101720"
-      stroke: "#22d3ee"
-      stroke-width: 2
-      border-radius: 14
-      font-color: "#ffffff"
-    }
-  }
+github: "🐙 GitHub"
+actions: "🚀 GitHub Actions"
+playwright: "🧪 Playwright"
+documentation: "📸 README + Wiki"
 
-  data: {
-    style: {
-      fill: "#131c18"
-      stroke: "#38d996"
-      stroke-width: 2
-      border-radius: 14
-      font-color: "#ffffff"
-    }
-  }
-}
+browser -> studio: "Chat / Image / Settings"
+studio -> api: "HTTP + streaming"
 
-user: "User / Browser" {
-  shape: rectangle
-  icon: https://cdn.simpleicons.org/googlechrome/4285F4
-  class: core
-}
+api -> intel
+intel -> router
+router -> ollama
+ollama -> models
 
-apex: "APEX AI" {
-  class: core
+intel -> memory
+intel -> rag
+rag -> embed
 
-  ui: "Studio UI" {
-    icon: https://cdn.simpleicons.org/javascript/F7DF1E
-    class: service
-  }
+api -> image
 
-  api: "FastAPI Backend" {
-    icon: https://cdn.simpleicons.org/fastapi/009688
-    class: service
-  }
-
-  intelligence: "Intelligence Engine" {
-    icon: https://cdn.simpleicons.org/python/3776AB
-    class: service
-  }
-
-  memory: "Long-Term Memory" {
-    icon: https://cdn.simpleicons.org/sqlite/38A7C4
-    class: data
-  }
-
-  knowledge: "1,000,000 Q&A RAG" {
-    icon: https://cdn.simpleicons.org/sqlite/38A7C4
-    class: data
-  }
-
-  images: "DreamShaper Image Engine" {
-    icon: https://cdn.simpleicons.org/huggingface/FFD21E
-    class: service
-  }
-}
-
-ollama: "Ollama Models" {
-  icon: https://cdn.simpleicons.org/ollama/FFFFFF
-  class: core
-}
-
-github: "GitHub Private Repo" {
-  icon: https://cdn.simpleicons.org/github/FFFFFF
-  class: core
-}
-
-actions: "GitHub Actions CI/CD" {
-  icon: https://cdn.simpleicons.org/githubactions/2088FF
-  class: service
-}
-
-user -> apex.ui: "chat / create"
-apex.ui -> apex.api: "HTTP + streaming"
-apex.api -> apex.intelligence: "adaptive reasoning"
-apex.intelligence -> ollama: "route installed models"
-apex.intelligence -> apex.memory: "remember + retrieve"
-apex.intelligence -> apex.knowledge: "hybrid RAG"
-apex.api -> apex.images: "image prompts"
-
-github -> actions: "push / PR / tags"
-actions -> github: "validate + package"
+github -> actions: "Push / PR / Tag"
+actions -> playwright: "UI validation"
+playwright -> documentation: "Screenshots"
+github -> documentation: "Project docs"

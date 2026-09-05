@@ -1,0 +1,47 @@
+name: Apex UI Screenshots
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Start Apex
+        run: |
+          mkdir -p data/generated
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8765 > /tmp/apex-ci.log 2>&1 &
+          for i in $(seq 1 45); do
+            curl -fsS http://127.0.0.1:8765/api/config && break
+            sleep 2
+          done
+
+      - name: Capture screenshots
+        env:
+          APEX_BASE_URL: http://127.0.0.1:8765
+        run: python tools/capture_screenshots.py
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: apex-ui-screenshots
+          path: docs/screenshots/

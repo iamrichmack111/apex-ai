@@ -41,3 +41,6 @@ Thumbs.db
 # Backups
 .design-backups/
 .intelligence-backups/
+node_modules/
+.playwright-venv/
+image-engine/stable-diffusion.cpp-v8/

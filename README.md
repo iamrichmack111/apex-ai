@@ -1,158 +1,131 @@
-<!-- APEX-README-HEADER-START -->
-
 # ⚡ Apex AI
 
-> **Private local AI command center powered by Ollama, FastAPI, RAG, long-term memory, local image generation, and automated CI/CD.**
+> **A local-first AI workspace powered by Ollama, FastAPI, adaptive intelligence, long-term memory, a 1,000,000-entry RAG knowledge layer, local image generation, Playwright automation, D2 architecture, and CI/CD.**
 
-![Python](https://img.shields.io/badge/Python-FastAPI-3776AB?logo=python&logoColor=white)
-![Ollama](https://img.shields.io/badge/Ollama-Local%20LLMs-black)
-![RAG](https://img.shields.io/badge/RAG-1M%20Q%26A-7c6cff)
-![SQLite](https://img.shields.io/badge/SQLite-Knowledge%20%2B%20Memory-003B57?logo=sqlite)
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-Local%20LLMs-111111)
+![SQLite](https://img.shields.io/badge/SQLite-Memory%20%2B%20RAG-003B57?logo=sqlite&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-Animated%20UI-F7DF1E?logo=javascript&logoColor=black)
-![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
-![Private](https://img.shields.io/badge/Repository-Private-111111?logo=github)
-![D2](https://img.shields.io/badge/Architecture-D2-5C5CFF)
+![Playwright](https://img.shields.io/badge/Playwright-Browser%20Automation-2EAD33)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI%2FCD-2088FF?logo=githubactions&logoColor=white)
+![D2](https://img.shields.io/badge/D2-Architecture-5C5CFF)
+![Local First](https://img.shields.io/badge/AI-Local%20First-7C6CFF)
+![Public](https://img.shields.io/badge/Repository-Public-success?logo=github)
 
-### 🏷️ Tags
+---
 
-`AI` · `Ollama` · `Local AI` · `LLM` · `RAG` · `1M Knowledge Base` · `Long-Term Memory` · `FastAPI` · `Python` · `JavaScript` · `Image Generation` · `DreamShaper` · `SQLite` · `DevOps` · `CI/CD` · `D2`
+## ✨ What Apex AI Can Do
 
-## 🧠 Architecture
+| Icon | Capability | Description |
+|---|---|---|
+| 🦙 | **Local LLMs** | Run locally installed Ollama models |
+| 🧠 | **Adaptive Intelligence** | Auto, Quick, Smart and Deep modes |
+| 🧭 | **Model Routing** | Route harder prompts to stronger installed models |
+| 💾 | **Long-Term Memory** | Store and retrieve useful information locally |
+| 📚 | **1M Knowledge Layer** | Search a million-entry local Q&A database |
+| 🔎 | **RAG** | Retrieve relevant context before answering |
+| 🧬 | **Semantic Retrieval** | Rerank knowledge with embedding models |
+| 🎨 | **Image Studio** | Local prompt-to-image interface |
+| 🌌 | **Animated UI** | Themes, motion, backgrounds and glass effects |
+| 💬 | **Chat Management** | Search, pin, rename, edit, regenerate and export |
+| 📱 | **Responsive UI** | Desktop and mobile interfaces |
+| 🧪 | **Playwright** | Automated browser screenshots |
+| 📐 | **D2** | Architecture as code |
+| 🚀 | **CI/CD** | GitHub Actions validation and packaging |
+
+---
+
+# 📸 Playwright UI Tour
+
+Every screenshot below was captured from the running Apex AI application by Playwright.
+
+## 🔐 Login
+
+![Apex AI Login](docs/screenshots/01-login.png)
+
+## 🏠 Main Workspace
+
+![Apex AI Workspace](docs/screenshots/02-workspace.png)
+
+## 🎨 Image Studio
+
+![Apex AI Image Studio](docs/screenshots/03-image-studio.png)
+
+## ⚙️ Settings
+
+![Apex AI Settings](docs/screenshots/04-settings.png)
+
+## 🧠 Intelligence Engine
+
+![Apex AI Intelligence](docs/screenshots/05-intelligence.png)
+
+## 🌌 Themes & Appearance
+
+![Apex AI Themes](docs/screenshots/06-themes.png)
+
+## 📚 Knowledge & RAG
+
+![Apex AI Knowledge](docs/screenshots/07-knowledge.png)
+
+## 📱 Mobile Interface
+
+![Apex AI Mobile](docs/screenshots/08-mobile.png)
+
+---
+
+# 📐 D2 Architecture
 
 ![Apex AI Architecture](docs/architecture.svg)
 
-> Architecture source: [`docs/architecture.d2`](docs/architecture.d2)
+Editable D2 source:
 
-### ✨ Core capabilities
+**docs/architecture.d2**
 
-- 🧠 Adaptive local AI intelligence
-- 🦙 Automatic routing across installed Ollama models
-- 💾 Long-term local memory
-- 📚 1,000,000-entry searchable RAG knowledge layer
-- 🔎 Semantic retrieval when an embedding model is available
-- 🎨 Local DreamShaper image generation
-- ⚡ Streaming FastAPI backend
-- 🌌 Animated JavaScript Studio UI
-- 🔐 Private local-first design
-- 🚀 GitHub Actions CI/CD
-- 📐 D2 architecture documentation
+---
 
-<!-- APEX-README-HEADER-END -->
+# 🏷️ Technology
 
-# Apex AI V7 — Better Images + 1M Local Knowledge
+`AI` · `Artificial Intelligence` · `Ollama` · `Local AI` · `Local LLM` · `LLM` · `Generative AI` · `RAG` · `Long-Term Memory` · `Embeddings` · `FastAPI` · `Python` · `JavaScript` · `SQLite` · `Playwright` · `Image Generation` · `GitHub Actions` · `DevOps` · `CI/CD` · `D2` · `Local First`
 
-V7 fixes the biggest two limitations in V6:
+---
 
-1. Tiny-SD has been replaced by a much higher-quality DreamShaper-7 LCM image engine.
-2. Apex now supports a local 1,000,000-record searchable Q&A knowledge pack.
+# 🧪 Playwright Automation
 
-## Better images
+Playwright documents:
 
-V7 uses a quantized DreamShaper-7 LCM model through stable-diffusion.cpp.
+- 🔐 Authentication
+- 🏠 Main workspace
+- 🎨 Image Studio
+- ⚙️ Settings
+- 🧠 Intelligence
+- 🌌 Themes
+- 📚 Knowledge and RAG
+- 📱 Mobile interface
 
-Default rendering:
+Capture fresh screenshots with:
 
-- 512×512
-- LCM sampler
-- 6 steps
-- CFG 1.0
-- auto prompt style detection
-- stronger anatomy / hands / face negative prompting
+    .playwright-venv/bin/python tools/apex_screenshots.py
 
-Image styles:
+The documentation capture does not submit an expensive image-generation request.
 
-- Auto
-- Anime / 2D
-- Illustration
-- Photo
-- Cinematic
-- Fantasy
-- Comic
-- Pixel art
+---
 
-Typing something like:
+# 📚 Apex AI Wiki
 
-```text
-2D girl with black hair wearing a blue jacket in a city at night
-```
+Full documentation:
 
-automatically switches to the Anime / 2D prompt booster instead of sending the raw phrase to a tiny generic model.
+**https://github.com/iamrichmack111/apex-ai/wiki**
 
-## 1,000,000 Q&A knowledge pack
+Wiki sections include:
 
-Apex builds a local SQLite FTS5 database containing exactly 1,000,000 searchable Q&A records.
-
-The builder prioritizes general-purpose QA first:
-
-- SQuAD
-- TriviaQA
-- WikiQA
-
-Then it uses Math-1M reasoning Q&A to fill the database to exactly 1,000,000 rows.
-
-At chat time Apex does NOT dump all one million records into the prompt. It searches the local FTS index and inserts only the most relevant 1–10 Q&As into the model context. That is much faster and more useful.
-
-You can control it in:
-
-```text
-Settings → Knowledge
-```
-
-Features include:
-
-- enable / disable local retrieval
-- choose number of retrieved Q&As
-- see installed record count
-- test local knowledge searches
-
-## One command
-
-```bash
-cd ~/Downloads && rm -rf apex-ai-v7 && unzip -o apex-ai-v7.zip && cd apex-ai-v7 && chmod +x setup-and-run.sh run.sh install-image-engine.sh install-knowledge.sh image-engine/start-image-engine.sh && ./setup-and-run.sh
-```
-
-Open:
-
-```text
-http://localhost:8765
-```
-
-## First-run downloads
-
-V7 intentionally keeps the ZIP small. The first setup downloads/builds the components locally:
-
-- DreamShaper-7 LCM Q4 image model: about 1.63 GB
-- stable-diffusion.cpp source/build
-- QA source datasets used to construct the local 1M SQLite index
-
-The Q&A data is stored locally after the one-time build in:
-
-```text
-data/knowledge_1m.db
-```
-
-## Skip optional installers
-
-Chat only:
-
-```bash
-SKIP_IMAGE_ENGINE=1 SKIP_KNOWLEDGE=1 ./setup-and-run.sh
-```
-
-Skip only knowledge:
-
-```bash
-SKIP_KNOWLEDGE=1 ./setup-and-run.sh
-```
-
-Rebuild/install knowledge later:
-
-```bash
-./install-knowledge.sh
-```
-
-Install the better image engine later:
-
-```bash
-./install-image-engine.sh
-```
+- Overview
+- Features
+- Installation
+- Architecture
+- Intelligence
+- Knowledge and RAG
+- Image Studio
+- Screenshots
+- Development
+- CI/CD
