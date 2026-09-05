@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en" data-theme="nebula" data-accent="electric">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Apex AI</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <canvas id="animatedBackground" class="animated-bg" aria-hidden="true"></canvas>
+  <div id="cursorGlow" class="cursor-glow" aria-hidden="true"></div>
+  <div id="noiseLayer" class="noise-layer" aria-hidden="true"></div>
+  <div id="toastHost" class="toast-host"></div>
+
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-stage">
+      <section class="auth-showcase">
+        <div class="showcase-kicker"><span></span> APEX STUDIO</div>
+        <h2>Your own private<br><em>AI command center.</em></h2>
+        <p>Local chat, image creation, a million-entry knowledge layer, and a fully customizable interface.</p>
+        <div class="showcase-visual">
+          <div class="showcase-orbit orbit-one"></div>
+          <div class="showcase-orbit orbit-two"></div>
+          <div class="showcase-orbit orbit-three"></div>
+          <div class="showcase-core"><span>A</span></div>
+          <div class="showcase-node node-a"></div>
+          <div class="showcase-node node-b"></div>
+          <div class="showcase-node node-c"></div>
+        </div>
+        <div class="showcase-stats">
+          <div><strong>LOCAL</strong><span>Private inference</span></div>
+          <div><strong>1M</strong><span>Knowledge entries</span></div>
+          <div><strong>V8</strong><span>Studio interface</span></div>
+        </div>
+      </section>
+      <section class="login-card glass-panel">
+      <div class="apex-logo xl"><span>A</span></div>
+      <div class="eyebrow">LOCAL • PRIVATE • YOURS</div>
+      <h1>Apex AI</h1>
+      <p>Your private AI workspace with live themes, animated backgrounds, chat, and image generation.</p>
+      <div class="auth-tabs">
+        <button id="loginTab" class="active">Log in</button>
+        <button id="signupTab">Sign up</button>
+      </div>
+      <form id="authForm">
+        <label class="floating-field">
+          <input id="authUsername" placeholder=" " autocomplete="username" minlength="3" required>
+          <span>Username</span>
+        </label>
+        <label class="floating-field">
+          <input id="authPassword" placeholder=" " type="password" autocomplete="current-password" minlength="6" required>
+          <span>Password</span>
+        </label>
+        <button id="authSubmit" class="primary wide ripple">Log in</button>
+      </form>
+      <div id="authError" class="form-error"></div>
+      </section>
+    </div>
+  </div>
+
+  <div id="app" class="app-shell hidden">
+    <aside id="sidebar" class="sidebar glass-panel">
+      <div class="brand-row">
+        <div class="apex-logo"><span>A</span></div>
+        <div class="brand-copy">
+          <div class="brand-title-line"><strong>Apex AI</strong><b class="live-badge">STUDIO</b></div>
+          <span>Private local intelligence</span>
+        </div>
+        <button id="closeSidebar" class="icon-btn mobile-only ripple" aria-label="Close sidebar">×</button>
+      </div>
+
+      <button id="newChatBtn" class="new-chat ripple">
+        <span class="new-icon">＋</span><span>New chat</span>
+        <kbd>⌘N</kbd>
+      </button>
+
+      <div class="sidebar-search">
+        <span class="search-glyph">⌕</span>
+        <input id="chatSearch" placeholder="Search chats">
+        <kbd>⌘K</kbd>
+      </div>
+
+      <div id="conversationList" class="conversation-list"></div>
+
+      <div class="sidebar-footer">
+        <div class="engine-row">
+          <span id="statusDot" class="status-dot pending"></span>
+          <span id="statusText">Checking Ollama…</span>
+          <span id="imageEngineDot" class="mini-dot"></span>
+        </div>
+        <button id="profileBtn" class="profile-button ripple">
+          <span id="profileAvatar" class="profile-avatar">U</span>
+          <span class="profile-copy">
+            <strong id="profileName">User</strong>
+            <small>Local account</small>
+          </span>
+          <span class="profile-more">•••</span>
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar glass-strip">
+        <div class="top-left">
+          <button id="menuBtn" class="icon-btn mobile-only ripple">☰</button>
+          <div class="workspace-label"><span>APEX</span><small>WORKSPACE</small></div>
+          <div class="model-wrap">
+            <div class="model-orb"></div>
+            <select id="modelSelect" class="model-select" aria-label="Model"></select>
+            <button id="modelManagerBtn" class="text-button ripple">Manage</button>
+          </div>
+          <button id="intelligenceBadge" class="intelligence-badge ripple" title="Intelligence settings">
+            <span>✦</span><b id="intelligenceBadgeText">AUTO</b>
+          </button>
+        </div>
+
+        <div class="mode-tabs">
+          <button id="chatModeBtn" class="active ripple">Chat</button>
+          <button id="imageModeBtn" class="ripple">Image</button>
+        </div>
+
+        <div class="top-right">
+          <button id="visualizerBtn" class="icon-btn ripple" title="Cycle background">✦</button>
+          <button id="exportCurrentBtn" class="icon-btn ripple" title="Export chat">⇩</button>
+          <button id="settingsBtn" class="icon-btn ripple" title="Settings">⚙</button>
+        </div>
+      </header>
+
+      <section id="chatScroll" class="chat-scroll">
+        <div id="emptyState" class="empty-state">
+          <div class="hero-emblem">
+            <div class="hero-ring ring-a"></div>
+            <div class="hero-ring ring-b"></div>
+            <div class="hero-logo">A</div>
+          </div>
+          <div class="hero-kicker"><span class="hero-kicker-dot"></span> APEX INTELLIGENCE STUDIO</div>
+          <h1 id="heroTitle">What do you want to <span class="gradient-word">build?</span></h1>
+          <p id="heroSubtitle">A private local AI workspace designed to feel like a product, not a demo.</p>
+          <div class="hero-status-strip">
+            <div class="hero-status-pill"><i class="status-pulse green"></i><span>Ollama</span><strong>LOCAL</strong></div>
+            <div class="hero-status-pill"><i class="status-pulse violet"></i><span>Knowledge</span><strong>1M QA</strong></div>
+            <div class="hero-status-pill"><i class="status-pulse cyan"></i><span>Images</span><strong>DREAMSHAPER</strong></div>
+          </div>
+          <div class="quick-start-label"><span>QUICK START</span><i></i></div>
+          <div id="suggestions" class="suggestion-grid">
+            <button data-prompt="Explain Kubernetes deployments in simple terms." class="ripple">
+              <span class="suggestion-icon">⌘</span><strong>Explain Kubernetes</strong><small>Make a complex topic simple</small>
+            </button>
+            <button data-prompt="Write a clean FastAPI app with comments and error handling." class="ripple">
+              <span class="suggestion-icon">‹/›</span><strong>Build something</strong><small>Generate working code</small>
+            </button>
+            <button data-prompt="Help me design an impressive DevOps portfolio project." class="ripple">
+              <span class="suggestion-icon">◇</span><strong>Plan a project</strong><small>Architecture and milestones</small>
+            </button>
+            <button data-prompt="Give me a Linux troubleshooting checklist for a slow server." class="ripple">
+              <span class="suggestion-icon">⚙</span><strong>Troubleshoot</strong><small>Work through a problem</small>
+            </button>
+          </div>
+        </div>
+        <div id="messages" class="messages"></div>
+      </section>
+
+      <section class="composer-zone">
+        <div id="imageOptions" class="image-options hidden glass-strip">
+          <label>Style
+            <select id="imageStyle">
+              <option value="auto">Auto style</option>
+              <option value="anime">Anime / 2D</option>
+              <option value="illustration">Illustration</option>
+              <option value="photo">Photo</option>
+              <option value="cinematic">Cinematic</option>
+              <option value="fantasy">Fantasy</option>
+              <option value="comic">Comic</option>
+              <option value="pixel">Pixel art</option>
+            </select>
+          </label>
+          <label>Size
+            <select id="imageSize">
+              <option value="512x512">512 × 512 · recommended</option>
+              <option value="384x384">384 × 384 · faster</option>
+              <option value="768x512">768 × 512 · landscape</option>
+              <option value="512x768">512 × 768 · portrait</option>
+            </select>
+          </label>
+          <label>Steps
+            <select id="imageSteps">
+              <option value="4">Fast · 4</option>
+              <option value="6">Balanced · 6</option>
+              <option value="8">Quality · 8</option>
+            </select>
+          </label>
+          <span id="imageStatus" class="image-status">DreamShaper engine</span>
+        </div>
+
+        <div class="composer glass-panel">
+          <textarea id="messageInput" rows="1" placeholder="Message Apex AI"></textarea>
+          <div class="composer-footer">
+            <div class="composer-left">
+              <button id="plusMenuBtn" class="round-tool ripple" title="Tools">＋</button>
+              <span id="modeHint" class="mode-hint">Fast · 480 tokens</span>
+            </div>
+            <div class="composer-right">
+              <button id="stopBtn" class="stop-button hidden" title="Stop generation"><span></span></button>
+              <button id="sendBtn" class="send-button ripple" title="Send">↑</button>
+            </div>
+          </div>
+        </div>
+        <div class="fineprint"><span class="fine-dot"></span> Private local session <b>•</b> Your data stays on this machine</div>
+      </section>
+    </main>
+  </div>
+
+  <div id="plusMenu" class="floating-menu hidden glass-panel">
+    <button data-plus-action="image"><span>▧</span>Create image</button>
+    <button data-plus-action="new"><span>＋</span>New chat</button>
+    <button data-plus-action="models"><span>◫</span>Manage models</button>
+    <button data-plus-action="settings"><span>⚙</span>Settings</button>
+  </div>
+
+  <div id="chatMenu" class="floating-menu hidden glass-panel">
+    <button data-chat-action="pin"><span>⌖</span><span id="chatPinLabel">Pin chat</span></button>
+    <button data-chat-action="rename"><span>✎</span>Rename</button>
+    <button data-chat-action="export"><span>⇩</span>Export JSON</button>
+    <div class="menu-separator"></div>
+    <button data-chat-action="delete" class="danger"><span>⌫</span>Delete</button>
+  </div>
+
+  <div id="profileMenu" class="floating-menu profile-menu hidden glass-panel">
+    <button data-profile-action="settings"><span>⚙</span>Settings</button>
+    <button data-profile-action="export"><span>⇩</span>Export all data</button>
+    <div class="menu-separator"></div>
+    <button id="logoutBtn"><span>↪</span>Log out</button>
+  </div>
+
+  <div id="settingsModal" class="modal hidden">
+    <div class="settings-dialog glass-panel">
+      <div class="settings-head">
+        <div><h2>Settings</h2><p>Control the entire Apex experience.</p></div>
+        <button class="icon-btn ripple" data-close="settingsModal">×</button>
+      </div>
+
+      <div class="settings-layout">
+        <nav id="settingsNav" class="settings-nav">
+          <button data-settings-tab="general" class="active">General</button>
+          <button data-settings-tab="appearance">Appearance</button>
+          <button data-settings-tab="background">Background</button>
+          <button data-settings-tab="ai">AI</button>
+          <button data-settings-tab="intelligence">Intelligence</button>
+          <button data-settings-tab="knowledge">Knowledge</button>
+          <button data-settings-tab="image">Image</button>
+          <button data-settings-tab="data">Data</button>
+        </nav>
+
+        <div class="settings-content">
+          <section class="settings-panel active" data-panel="general">
+            <h3>General</h3>
+            <div class="setting-row"><div><strong>Enter to send</strong><small>Use Shift+Enter for a new line.</small></div><label class="switch"><input id="enterToSend" type="checkbox"><span></span></label></div>
+            <div class="setting-row"><div><strong>Show timestamps</strong><small>Display time beside each message.</small></div><label class="switch"><input id="timestamps" type="checkbox"><span></span></label></div>
+            <div class="setting-row"><div><strong>Show avatars</strong><small>Display user and Apex icons.</small></div><label class="switch"><input id="avatars" type="checkbox"><span></span></label></div>
+            <div class="setting-row"><div><strong>Interface animations</strong><small>Message movement, ripples, hover effects.</small></div><label class="switch"><input id="animations" type="checkbox"><span></span></label></div>
+            <div class="setting-row"><div><strong>Cursor glow</strong><small>Soft light that follows your mouse.</small></div><label class="switch"><input id="cursorGlowToggle" type="checkbox"><span></span></label></div>
+            <div class="setting-row"><div><strong>Finish sound</strong><small>Play a quiet tone when a reply finishes.</small></div><label class="switch"><input id="finishSound" type="checkbox"><span></span></label></div>
+            <div class="shortcut-card"><strong>Keyboard shortcuts</strong><span><kbd>⌘K</kbd> Search chats</span><span><kbd>⌘N</kbd> New chat</span><span><kbd>⌘,</kbd> Settings</span><span><kbd>Esc</kbd> Stop / close</span></div>
+          </section>
+
+          <section class="settings-panel" data-panel="appearance">
+            <h3>Appearance</h3>
+            <label class="section-caption">Theme</label>
+            <div id="themeGrid" class="theme-grid">
+              <button data-theme-choice="nebula"><i class="theme-preview nebula"></i><span>Nebula</span></button>
+              <button data-theme-choice="cyber"><i class="theme-preview cyber"></i><span>Cyber</span></button>
+              <button data-theme-choice="galaxy"><i class="theme-preview galaxy"></i><span>Galaxy</span></button>
+              <button data-theme-choice="midnight"><i class="theme-preview midnight"></i><span>Midnight</span></button>
+              <button data-theme-choice="graphite"><i class="theme-preview graphite"></i><span>Graphite</span></button>
+              <button data-theme-choice="ocean"><i class="theme-preview ocean"></i><span>Ocean</span></button>
+              <button data-theme-choice="arctic"><i class="theme-preview arctic"></i><span>Arctic</span></button>
+              <button data-theme-choice="forest"><i class="theme-preview forest"></i><span>Forest</span></button>
+              <button data-theme-choice="emerald"><i class="theme-preview emerald"></i><span>Emerald</span></button>
+              <button data-theme-choice="ember"><i class="theme-preview ember"></i><span>Ember</span></button>
+              <button data-theme-choice="sunset"><i class="theme-preview sunset"></i><span>Sunset</span></button>
+              <button data-theme-choice="sakura"><i class="theme-preview sakura"></i><span>Sakura</span></button>
+              <button data-theme-choice="plum"><i class="theme-preview plum"></i><span>Plum</span></button>
+              <button data-theme-choice="matrix"><i class="theme-preview matrix"></i><span>Matrix</span></button>
+              <button data-theme-choice="hologram"><i class="theme-preview hologram"></i><span>Hologram</span></button>
+              <button data-theme-choice="obsidian"><i class="theme-preview obsidian"></i><span>Obsidian</span></button>
+              <button data-theme-choice="synthwave"><i class="theme-preview synthwave"></i><span>Synthwave</span></button>
+              <button data-theme-choice="solar"><i class="theme-preview solar"></i><span>Solar</span></button>
+              <button data-theme-choice="mono"><i class="theme-preview mono"></i><span>Mono</span></button>
+              <button data-theme-choice="light"><i class="theme-preview light"></i><span>Light</span></button>
+            </div>
+
+            <label class="section-caption">Accent</label>
+            <div id="accentGrid" class="accent-grid">
+              <button data-accent-choice="electric" title="Electric"></button>
+              <button data-accent-choice="violet" title="Violet"></button>
+              <button data-accent-choice="blue" title="Blue"></button>
+              <button data-accent-choice="cyan" title="Cyan"></button>
+              <button data-accent-choice="green" title="Green"></button>
+              <button data-accent-choice="lime" title="Lime"></button>
+              <button data-accent-choice="orange" title="Orange"></button>
+              <button data-accent-choice="red" title="Red"></button>
+              <button data-accent-choice="pink" title="Pink"></button>
+              <button data-accent-choice="gold" title="Gold"></button>
+            </div>
+
+            <div class="slider-setting"><div><strong>Font size</strong><small><span id="fontSizeValue">15</span>px</small></div><input id="fontSize" type="range" min="13" max="20" step="1"></div>
+            <div class="slider-setting"><div><strong>Chat width</strong><small><span id="chatWidthValue">780</span>px</small></div><input id="chatWidth" type="range" min="620" max="1100" step="20"></div>
+            <div class="slider-setting"><div><strong>Glass strength</strong><small><span id="glassStrengthValue">72</span>%</small></div><input id="glassStrength" type="range" min="35" max="95" step="1"></div>
+            <label class="section-caption">Density</label>
+            <div id="densityControl" class="segmented"><button data-density="compact">Compact</button><button data-density="comfortable">Comfortable</button><button data-density="spacious">Spacious</button></div>
+          </section>
+
+          <section class="settings-panel" data-panel="background">
+            <h3>Animated background</h3>
+            <p class="panel-note">These are rendered in JavaScript on a live canvas behind the entire app.</p>
+
+            <div id="backgroundModes" class="background-grid">
+              <button data-bg-mode="aurora"><i>≈</i><strong>Aurora</strong><small>Flowing color waves</small></button>
+              <button data-bg-mode="particles"><i>✦</i><strong>Particles</strong><small>Drifting connected lights</small></button>
+              <button data-bg-mode="stars"><i>✧</i><strong>Stars</strong><small>Deep moving starfield</small></button>
+              <button data-bg-mode="mesh"><i>◇</i><strong>Mesh</strong><small>Animated gradient nodes</small></button>
+              <button data-bg-mode="matrix"><i>01</i><strong>Matrix</strong><small>Digital rain</small></button>
+              <button data-bg-mode="bubbles"><i>○</i><strong>Bubbles</strong><small>Floating glass orbs</small></button>
+              <button data-bg-mode="waves"><i>∿</i><strong>Waves</strong><small>Layered luminous lines</small></button>
+              <button data-bg-mode="off"><i>×</i><strong>Off</strong><small>Static background</small></button>
+            </div>
+
+            <div class="slider-setting"><div><strong>Intensity</strong><small><span id="backgroundIntensityValue">65</span>%</small></div><input id="backgroundIntensity" type="range" min="0" max="100" step="1"></div>
+            <div class="slider-setting"><div><strong>Animation speed</strong><small><span id="backgroundSpeedValue">100</span>%</small></div><input id="backgroundSpeed" type="range" min="20" max="220" step="5"></div>
+            <div class="slider-setting"><div><strong>Background blur</strong><small><span id="backgroundBlurValue">18</span>px</small></div><input id="backgroundBlur" type="range" min="0" max="40" step="1"></div>
+          </section>
+
+          <section class="settings-panel" data-panel="ai">
+            <h3>AI behavior</h3>
+            <label class="section-caption">Response mode</label>
+            <div id="responseMode" class="segmented"><button data-mode="fast">Fast</button><button data-mode="balanced">Balanced</button><button data-mode="quality">Quality</button></div>
+            <div class="slider-setting"><div><strong>Temperature</strong><small id="temperatureValue">0.55</small></div><input id="temperature" type="range" min="0" max="1.5" step="0.05"></div>
+            <div class="slider-setting"><div><strong>Maximum response</strong><small><span id="maxTokensValue">480</span> tokens</small></div><input id="maxTokens" type="range" min="128" max="2048" step="64"></div>
+            <label class="section-caption">Context window</label>
+            <select id="contextWindow" class="settings-select">
+              <option value="2048">2K · fastest</option>
+              <option value="4096">4K · recommended</option>
+              <option value="8192">8K · longer memory</option>
+              <option value="16384">16K · slower</option>
+            </select>
+            <div class="setting-row"><div><strong>Thinking mode</strong><small>Lets supported models reason before answering. Slower.</small></div><label class="switch"><input id="thinking" type="checkbox"><span></span></label></div>
+            <label class="section-caption">System prompt</label>
+            <textarea id="systemPrompt" class="settings-textarea" rows="6"></textarea>
+          </section>
+
+
+
+<section class="settings-panel" data-panel="intelligence">
+  <h3>Intelligence engine</h3>
+  <p class="panel-note">Apex can route difficult tasks to stronger models you already have installed, remember useful context, summarize long chats, semantically rerank your 1M knowledge pack, and review hard answers before showing them.</p>
+
+  <div class="intelligence-hero">
+    <div class="brain-core">✦</div>
+    <div class="intelligence-hero-copy">
+      <strong id="intelligenceStatusTitle">Smart context ready</strong>
+      <span id="intelligenceStatusText">Checking installed capabilities…</span>
+    </div>
+    <span id="embeddingBadge" class="knowledge-badge">Embeddings: checking</span>
+  </div>
+
+  <label class="section-caption">Intelligence level</label>
+  <div id="intelligenceModeControl" class="segmented intelligence-modes">
+    <button data-intelligence-mode="auto">Auto</button>
+    <button data-intelligence-mode="quick">Quick</button>
+    <button data-intelligence-mode="smart">Smart</button>
+    <button data-intelligence-mode="deep">Deep</button>
+  </div>
+  <p class="setting-help">Auto keeps easy questions fast and uses Deep Review only for genuinely difficult prompts. Deep makes an internal draft, reviews it, then displays only the polished final answer.</p>
+
+  <div class="setting-row"><div><strong>Automatic model routing</strong><small>For hard prompts, use the strongest suitable Ollama chat model that is already installed. Never downloads or removes a model.</small></div><label class="switch"><input id="autoModelRouting" type="checkbox"><span></span></label></div>
+  <div class="slider-setting"><div><strong>Auto-route model ceiling</strong><small>Up to <span id="maxAutoModelBValue">9</span>B parameters</small></div><input id="maxAutoModelB" type="range" min="2" max="32" step="1"></div>
+  <div class="setting-row"><div><strong>Adaptive reasoning</strong><small>Automatically enable model thinking on complex tasks when supported.</small></div><label class="switch"><input id="adaptiveThinking" type="checkbox"><span></span></label></div>
+  <div class="setting-row"><div><strong>Long-term local memory</strong><small>Retrieve durable preferences, project decisions, and explicit “remember” instructions from your local database.</small></div><label class="switch"><input id="longTermMemory" type="checkbox"><span></span></label></div>
+  <div class="setting-row"><div><strong>Background learning</strong><small>Locally extract durable memories after replies using structured JSON. Passwords, keys, and account secrets are excluded.</small></div><label class="switch"><input id="autoLearnMemory" type="checkbox"><span></span></label></div>
+  <div class="setting-row"><div><strong>Conversation summaries</strong><small>Compress older chat state in the background so long conversations keep continuity without sending everything every turn.</small></div><label class="switch"><input id="conversationSummaries" type="checkbox"><span></span></label></div>
+  <div class="setting-row"><div><strong>Semantic knowledge reranking</strong><small>If an embedding model such as embeddinggemma is already installed, use it to rerank knowledge matches. Falls back automatically if none exists.</small></div><label class="switch"><input id="embeddingRerank" type="checkbox"><span></span></label></div>
+  <div class="slider-setting"><div><strong>Memory matches</strong><small><span id="memoryResultsValue">5</span> relevant memories per request</small></div><input id="memoryResults" type="range" min="1" max="10" step="1"></div>
+
+  <label class="section-caption">Add a permanent local memory</label>
+  <div class="knowledge-search-row"><input id="manualMemoryInput" class="dialog-input" placeholder="Example: Prefer commands as one copy-paste block"><button id="addMemoryBtn" class="secondary ripple">Remember</button></div>
+
+  <div class="memory-summary-row">
+    <div><strong id="memoryCount">0</strong><small>memories</small></div>
+    <div><strong id="summaryCount">0</strong><small>conversation summaries</small></div>
+    <div><strong id="installedModelCount">0</strong><small>installed chat models visible to Apex</small></div>
+  </div>
+  <div id="memoryList" class="memory-list"></div>
+</section>
+
+          <section class="settings-panel" data-panel="knowledge">
+  <h3>Local knowledge</h3>
+  <p class="panel-note">Apex can retrieve relevant Q&A records from a local 1,000,000-entry SQLite FTS knowledge pack before it answers.</p>
+
+  <div class="knowledge-hero">
+    <div>
+      <span id="knowledgeCount" class="knowledge-count">0</span>
+      <small>searchable Q&A records</small>
+    </div>
+    <span id="knowledgeReadyBadge" class="knowledge-badge">Checking…</span>
+  </div>
+
+  <div class="setting-row">
+    <div><strong>Use local knowledge</strong><small>Retrieve relevant records and add them to the model's context.</small></div>
+    <label class="switch"><input id="useKnowledge" type="checkbox"><span></span></label>
+  </div>
+
+  <div class="slider-setting">
+    <div><strong>Retrieved results</strong><small><span id="knowledgeResultsValue">5</span> matches per question</small></div>
+    <input id="knowledgeResults" type="range" min="1" max="10" step="1">
+  </div>
+
+  <label class="section-caption">Test knowledge search</label>
+  <div class="knowledge-search-row">
+    <input id="knowledgeTestQuery" class="dialog-input" placeholder="e.g. Who wrote The Hobbit?">
+    <button id="knowledgeTestBtn" class="secondary ripple">Search</button>
+  </div>
+  <div id="knowledgeTestResults" class="knowledge-results"></div>
+</section>
+
+          <section class="settings-panel" data-panel="image">
+            <h3>Image generation</h3>
+            <p class="panel-note">Tiny-SD remains the fast local image model.</p>
+            <label class="section-caption">Default style</label>
+            <select id="defaultImageStyle" class="settings-select">
+              <option value="auto">Auto detect</option><option value="anime">Anime / 2D</option><option value="illustration">Illustration</option><option value="photo">Photo</option><option value="cinematic">Cinematic</option><option value="fantasy">Fantasy</option><option value="comic">Comic</option><option value="pixel">Pixel art</option>
+            </select>
+            <label class="section-caption">Default size</label>
+            <select id="defaultImageSize" class="settings-select">
+              <option value="512x512">512 × 512 · recommended</option>
+              <option value="384x384">384 × 384 · faster</option>
+              <option value="768x512">768 × 512 · landscape</option>
+              <option value="512x768">512 × 768 · portrait</option>
+            </select>
+            <label class="section-caption">Default steps</label>
+            <div id="imageStepsControl" class="segmented"><button data-image-steps="4">4 · Fast</button><button data-image-steps="6">6 · Balanced</button><button data-image-steps="8">8 · Quality</button></div>
+            <label class="section-caption">Negative prompt</label>
+            <textarea id="imageNegativePrompt" class="settings-textarea" rows="4"></textarea>
+          </section>
+
+          <section class="settings-panel" data-panel="data">
+            <h3>Data</h3>
+            <div class="data-card"><div><strong>Export everything</strong><small>Download your chats and settings as JSON.</small></div><button id="exportAllBtn" class="secondary ripple">Export</button></div>
+            <div class="data-card"><div><strong>Import Apex data</strong><small>Import a previously exported JSON file.</small></div><button id="importAllBtn" class="secondary ripple">Import</button><input id="importFile" class="hidden" type="file" accept=".json,application/json"></div>
+            <div class="data-card danger-zone"><div><strong>Clear all chats</strong><small>This permanently deletes every conversation for this account.</small></div><button id="clearChatsBtn" class="danger-button ripple">Clear</button></div>
+          </section>
+        </div>
+      </div>
+
+      <div class="settings-footer">
+        <span id="settingsSaved" class="settings-saved"></span>
+        <button id="saveSettings" class="primary ripple">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modelModal" class="modal hidden">
+    <div class="dialog glass-panel">
+      <div class="dialog-head">
+        <div><h2>Model manager</h2><p>Install and switch Ollama models.</p></div>
+        <button class="icon-btn ripple" data-close="modelModal">×</button>
+      </div>
+      <div class="model-install">
+        <input id="modelNameInput" placeholder="huihui_ai/qwen3-abliterated:1.7b">
+        <button id="installModelBtn" class="primary ripple">Install</button>
+      </div>
+      <div class="recommended-models">
+        <button data-model="huihui_ai/qwen3-abliterated:1.7b" class="ripple"><strong>Qwen3 Abliterated 1.7B</strong><small>Fastest · recommended</small></button>
+        <button data-model="huihui_ai/qwen3-abliterated:4b" class="ripple"><strong>Qwen3 Abliterated 4B</strong><small>Better quality</small></button>
+        <button data-model="qwen3:4b" class="ripple"><strong>Qwen3 4B</strong><small>Standard model</small></button>
+      </div>
+      <div id="pullProgress" class="progress-block hidden">
+        <div class="progress-track"><span id="pullBar"></span></div>
+        <p id="pullText">Preparing…</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="renameModal" class="modal hidden">
+    <div class="mini-dialog glass-panel">
+      <div class="dialog-head"><div><h2>Rename chat</h2></div><button class="icon-btn ripple" data-close="renameModal">×</button></div>
+      <input id="renameInput" class="dialog-input" maxlength="120">
+      <div class="dialog-actions"><button class="secondary ripple" data-close="renameModal">Cancel</button><button id="renameSaveBtn" class="primary ripple">Rename</button></div>
+    </div>
+  </div>
+
+  <script src="/static/visual-engine.js"></script>
+  <script src="/static/app.js"></script>
+  <script src="/static/ui-motion.js"></script>
+</body>
+</html>

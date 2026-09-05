@@ -1,0 +1,57 @@
+name: Apex AI CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Python syntax checks
+        run: |
+          python -m py_compile app/main.py
+          test ! -f app/intelligence.py || python -m py_compile app/intelligence.py
+          test ! -f image-engine/server.py || python -m py_compile image-engine/server.py
+          test ! -f knowledge-engine/build_knowledge.py || python -m py_compile knowledge-engine/build_knowledge.py
+
+      - name: JavaScript syntax checks
+        run: |
+          node --check app/static/app.js
+          test ! -f app/static/visual-engine.js || node --check app/static/visual-engine.js
+          test ! -f app/static/ui-motion.js || node --check app/static/ui-motion.js
+
+      - name: Shell syntax checks
+        run: |
+          find . -maxdepth 3 -type f -name "*.sh" -print0 | xargs -0 -r -n1 bash -n
+
+      - name: Verify no AI models were committed
+        run: |
+          if find . -type f \( -name "*.gguf" -o -name "*.safetensors" -o -name "*.ckpt" \) | grep -q .; then
+            echo "AI model file found in Git checkout."
+            exit 1
+          fi

@@ -1,0 +1,43 @@
+# Python
+.venv/
+.knowledge-venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Secrets / environment
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# Local Apex data
+data/*.db
+data/*.db-*
+data/generated/*
+!data/generated/.gitkeep
+data/backups/
+
+# AI models / engines
+image-engine/models/
+image-engine/stable-diffusion.cpp/
+*.gguf
+*.safetensors
+*.ckpt
+*.bin
+
+# Local logs
+*.log
+/tmp/
+logs/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Backups
+.design-backups/
+.intelligence-backups/
