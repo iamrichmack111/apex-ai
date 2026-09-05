@@ -1,3 +1,44 @@
+<!-- APEX-README-HEADER-START -->
+
+# ⚡ Apex AI
+
+> **Private local AI command center powered by Ollama, FastAPI, RAG, long-term memory, local image generation, and automated CI/CD.**
+
+![Python](https://img.shields.io/badge/Python-FastAPI-3776AB?logo=python&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-Local%20LLMs-black)
+![RAG](https://img.shields.io/badge/RAG-1M%20Q%26A-7c6cff)
+![SQLite](https://img.shields.io/badge/SQLite-Knowledge%20%2B%20Memory-003B57?logo=sqlite)
+![JavaScript](https://img.shields.io/badge/JavaScript-Animated%20UI-F7DF1E?logo=javascript&logoColor=black)
+![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)
+![Private](https://img.shields.io/badge/Repository-Private-111111?logo=github)
+![D2](https://img.shields.io/badge/Architecture-D2-5C5CFF)
+
+### 🏷️ Tags
+
+`AI` · `Ollama` · `Local AI` · `LLM` · `RAG` · `1M Knowledge Base` · `Long-Term Memory` · `FastAPI` · `Python` · `JavaScript` · `Image Generation` · `DreamShaper` · `SQLite` · `DevOps` · `CI/CD` · `D2`
+
+## 🧠 Architecture
+
+![Apex AI Architecture](docs/architecture.svg)
+
+> Architecture source: [`docs/architecture.d2`](docs/architecture.d2)
+
+### ✨ Core capabilities
+
+- 🧠 Adaptive local AI intelligence
+- 🦙 Automatic routing across installed Ollama models
+- 💾 Long-term local memory
+- 📚 1,000,000-entry searchable RAG knowledge layer
+- 🔎 Semantic retrieval when an embedding model is available
+- 🎨 Local DreamShaper image generation
+- ⚡ Streaming FastAPI backend
+- 🌌 Animated JavaScript Studio UI
+- 🔐 Private local-first design
+- 🚀 GitHub Actions CI/CD
+- 📐 D2 architecture documentation
+
+<!-- APEX-README-HEADER-END -->
+
 # Apex AI V7 — Better Images + 1M Local Knowledge
 
 V7 fixes the biggest two limitations in V6:

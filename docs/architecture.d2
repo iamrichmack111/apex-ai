@@ -1,0 +1,99 @@
+direction: right
+
+classes: {
+  core: {
+    style: {
+      fill: "#151522"
+      stroke: "#7c6cff"
+      stroke-width: 2
+      border-radius: 14
+      font-color: "#ffffff"
+    }
+  }
+
+  service: {
+    style: {
+      fill: "#101720"
+      stroke: "#22d3ee"
+      stroke-width: 2
+      border-radius: 14
+      font-color: "#ffffff"
+    }
+  }
+
+  data: {
+    style: {
+      fill: "#131c18"
+      stroke: "#38d996"
+      stroke-width: 2
+      border-radius: 14
+      font-color: "#ffffff"
+    }
+  }
+}
+
+user: "User / Browser" {
+  shape: rectangle
+  icon: https://cdn.simpleicons.org/googlechrome/4285F4
+  class: core
+}
+
+apex: "APEX AI" {
+  class: core
+
+  ui: "Studio UI" {
+    icon: https://cdn.simpleicons.org/javascript/F7DF1E
+    class: service
+  }
+
+  api: "FastAPI Backend" {
+    icon: https://cdn.simpleicons.org/fastapi/009688
+    class: service
+  }
+
+  intelligence: "Intelligence Engine" {
+    icon: https://cdn.simpleicons.org/python/3776AB
+    class: service
+  }
+
+  memory: "Long-Term Memory" {
+    icon: https://cdn.simpleicons.org/sqlite/38A7C4
+    class: data
+  }
+
+  knowledge: "1,000,000 Q&A RAG" {
+    icon: https://cdn.simpleicons.org/sqlite/38A7C4
+    class: data
+  }
+
+  images: "DreamShaper Image Engine" {
+    icon: https://cdn.simpleicons.org/huggingface/FFD21E
+    class: service
+  }
+}
+
+ollama: "Ollama Models" {
+  icon: https://cdn.simpleicons.org/ollama/FFFFFF
+  class: core
+}
+
+github: "GitHub Private Repo" {
+  icon: https://cdn.simpleicons.org/github/FFFFFF
+  class: core
+}
+
+actions: "GitHub Actions CI/CD" {
+  icon: https://cdn.simpleicons.org/githubactions/2088FF
+  class: service
+}
+
+user -> apex.ui: "chat / create"
+apex.ui -> apex.api: "HTTP + streaming"
+apex.api -> apex.intelligence: "adaptive reasoning"
+apex.intelligence -> ollama: "route installed models"
+apex.intelligence -> apex.memory: "remember + retrieve"
+apex.intelligence -> apex.knowledge: "hybrid RAG"
+apex.api -> apex.images: "image prompts"
+
+github -> actions: "push / PR / tags"
+actions -> github: "validate + package"
