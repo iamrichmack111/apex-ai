@@ -115,7 +115,7 @@ The documentation capture does not submit an expensive image-generation request.
 
 Full documentation:
 
-**https://github.com/iamrichmack111/apex-ai/wiki**
+**docs/wiki/Home.md**
 
 Wiki sections include:
 

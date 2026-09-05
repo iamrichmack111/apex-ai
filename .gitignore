@@ -1,46 +1,43 @@
-# Python
-.venv/
-.knowledge-venv/
-__pycache__/
-*.pyc
-*.pyo
 
-# Secrets / environment
-.env
-.env.*
-!.env.example
-*.key
-*.pem
-
-# Local Apex data
+# AI models / engines
+# Backups
+*.bin
+*.ckpt
+data/backups/
 data/*.db
 data/*.db-*
 data/generated/*
 !data/generated/.gitkeep
-data/backups/
-
-# AI models / engines
+.design-backups/
+.DS_Store
+.env
+.env.*
+!.env.example
+*.gguf
+.idea/
 image-engine/models/
 image-engine/stable-diffusion.cpp/
-*.gguf
-*.safetensors
-*.ckpt
-*.bin
-
-# Local logs
-*.log
-/tmp/
-logs/
-
-# OS / editor
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-
-# Backups
-.design-backups/
-.intelligence-backups/
-node_modules/
-.playwright-venv/
 image-engine/stable-diffusion.cpp-v8/
+.intelligence-backups/
+*.key
+.knowledge-venv/
+# Local Apex data
+# Local logs
+# Local model files
+# Local/private Apex data
+*.log
+logs/
+node_modules/
+# OS / editor
+*.pem
+.playwright-venv/
+*.pyc
+__pycache__/
+*.pyo
+# Python
+*.safetensors
+# Secrets / environment
+Thumbs.db
+/tmp/
+.venv/
+.vscode/
