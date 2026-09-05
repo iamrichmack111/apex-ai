@@ -19,7 +19,7 @@ const DEFAULT_PREFS = {
   cursorGlow:true, backgroundBlur:18,
   responseMode:"fast", temperature:.55, maxTokens:480, contextWindow:4096, thinking:false,
   systemPrompt:"You are Apex AI, a capable private local assistant. Be direct, clear, useful, and concise unless the user asks for detail.",
-  imageSize:"512x512", imageSteps:6, imageStyle:"auto", useKnowledge:true, knowledgeResults:5,
+  imageSize:"256x256", imageSteps:4, imageStyle:"auto", useKnowledge:true, knowledgeResults:5,
   intelligenceMode:"auto", autoModelRouting:true, maxAutoModelB:9, adaptiveThinking:true,
   longTermMemory:true, autoLearnMemory:true, conversationSummaries:true, embeddingRerank:true, memoryResults:5,
   imageNegativePrompt:"worst quality, low quality, lowres, blurry, deformed, malformed anatomy, extra limbs, extra fingers, fused fingers, bad hands, bad face, duplicate, text, watermark, logo"
@@ -59,16 +59,15 @@ function applyPrefs(){
   document.body.classList.toggle("spacious",prefs.density==="spacious");
   document.body.classList.toggle("hide-avatars",!prefs.avatars);
   $("#cursorGlow").style.opacity=prefs.cursorGlow?"0.8":"0";
-  const imageStyleEl=$("#imageStyle"),imageSizeEl=$("#imageSize"),imageStepsEl=$("#imageSteps");
-  if(imageStyleEl)imageStyleEl.value=prefs.imageStyle||"auto";
+  const imageSizeEl=$("#imageSize"),imageStepsEl=$("#imageSteps");
   if(imageSizeEl){
     const valid=[...imageSizeEl.options].some(o=>o.value===prefs.imageSize);
-    imageSizeEl.value=valid?prefs.imageSize:"512x512";
+    imageSizeEl.value=valid?prefs.imageSize:"256x256";
   }
   if(imageStepsEl){
     const wanted=String(prefs.imageSteps);
     const valid=[...imageStepsEl.options].some(o=>o.value===wanted);
-    imageStepsEl.value=valid?wanted:"6";
+    imageStepsEl.value=valid?wanted:"4";
   }
   updateModeHint();
   if(visualEngine){
@@ -100,11 +99,10 @@ function fillSettingsForm(){
   $("#temperature").value=prefs.temperature;$("#temperatureValue").textContent=Number(prefs.temperature).toFixed(2);
   $("#maxTokens").value=prefs.maxTokens;$("#maxTokensValue").textContent=prefs.maxTokens;
   $("#contextWindow").value=String(prefs.contextWindow);$("#thinking").checked=!!prefs.thinking;$("#systemPrompt").value=prefs.systemPrompt;
-  const defaultImageStyleEl=$("#defaultImageStyle"),defaultImageSizeEl=$("#defaultImageSize");
-  if(defaultImageStyleEl)defaultImageStyleEl.value=prefs.imageStyle||"auto";
+  const defaultImageSizeEl=$("#defaultImageSize");
   if(defaultImageSizeEl){
     const valid=[...defaultImageSizeEl.options].some(o=>o.value===prefs.imageSize);
-    defaultImageSizeEl.value=valid?prefs.imageSize:"512x512";
+    defaultImageSizeEl.value=valid?prefs.imageSize:"256x256";
   }
   $("#imageNegativePrompt").value=prefs.imageNegativePrompt;
   $("#useKnowledge").checked=!!prefs.useKnowledge;$("#knowledgeResults").value=Number(prefs.knowledgeResults||5);$("#knowledgeResultsValue").textContent=Number(prefs.knowledgeResults||5);
@@ -124,8 +122,6 @@ function readSettingsForm(){
   prefs.fontSize=Number($("#fontSize").value);prefs.chatWidth=Number($("#chatWidth").value);prefs.glassStrength=Number($("#glassStrength").value)/100;
   prefs.backgroundIntensity=Number($("#backgroundIntensity").value)/100;prefs.backgroundSpeed=Number($("#backgroundSpeed").value)/100;prefs.backgroundBlur=Number($("#backgroundBlur").value);
   prefs.temperature=Number($("#temperature").value);prefs.maxTokens=Number($("#maxTokens").value);prefs.contextWindow=Number($("#contextWindow").value);prefs.thinking=$("#thinking").checked;prefs.systemPrompt=$("#systemPrompt").value;
-  const defaultStyle=$("#defaultImageStyle");
-  prefs.imageStyle=defaultStyle?defaultStyle.value:"auto";
   prefs.imageSize=$("#defaultImageSize").value;
   prefs.imageNegativePrompt=$("#imageNegativePrompt").value;
   prefs.useKnowledge=$("#useKnowledge").checked;prefs.knowledgeResults=Number($("#knowledgeResults").value);
@@ -166,7 +162,7 @@ async function checkHealth(){
     $("#statusDot").className="status-dot "+(ok?"ok":"bad");
     $("#statusText").textContent=ok?"Ollama connected":"Ollama unavailable";
     $("#imageEngineDot").className="mini-dot "+(d.image==="ok"?"ok":"");
-    $("#imageStatus").textContent=d.image==="ok"?"DreamShaper ready":"DreamShaper not ready";
+    $("#imageStatus").textContent=d.image==="ok"?"Tiny-SD ready":"Tiny-SD not found";
   }catch{
     $("#statusDot").className="status-dot bad";
     $("#statusText").textContent="Backend unavailable";
@@ -229,10 +225,9 @@ async function sendImage(text){
   const loading=makeImageLoading();
   setBusy(true,false);
   try{
-    const styleEl=$("#imageStyle"),sizeEl=$("#imageSize"),stepsEl=$("#imageSteps");
-    const style=(styleEl&&styleEl.value)?styleEl.value:(prefs.imageStyle||"auto");
-    const size=(sizeEl&&sizeEl.value)?sizeEl.value:"512x512";
-    const steps=Number((stepsEl&&stepsEl.value)?stepsEl.value:6);
+    const sizeEl=$("#imageSize"),stepsEl=$("#imageSteps");
+    const size=(sizeEl&&sizeEl.value)?sizeEl.value:"256x256";
+    const steps=Number((stepsEl&&stepsEl.value)?stepsEl.value:4);
     const [w,h]=size.split("x").map(Number);
 
     const r=await api("/api/image/generate",{
@@ -244,8 +239,7 @@ async function sendImage(text){
         negative_prompt:prefs.imageNegativePrompt,
         width:w,
         height:h,
-        steps,
-        style
+        steps
       })
     });
 
@@ -281,7 +275,7 @@ async function sendImage(text){
 async function sendMessage(textOverride=null){if(isStreaming)return;const input=$("#messageInput"),text=(textOverride??input.value).trim();if(!text)return;input.value="";autoResize();if(appMode==="image")await sendImage(text);else await sendChat(text)}
 
 function bindSuggestions(){$$("#suggestions button").forEach(b=>b.onclick=()=>sendMessage(b.dataset.prompt))}
-function setAppMode(mode){appMode=mode;$("#chatModeBtn").classList.toggle("active",mode==="chat");$("#imageModeBtn").classList.toggle("active",mode==="image");$("#imageOptions").classList.toggle("hidden",mode!=="image");if(mode==="image"){$("#heroTitle").textContent="Create something visual";$("#heroSubtitle").textContent="Higher-quality local images with DreamShaper 7 + LCM.";$("#messageInput").placeholder="Describe an image";$("#suggestions").innerHTML=`<button data-prompt="A cinematic rainy city street at night, neon reflections, realistic photography" class="ripple"><span class="suggestion-icon">▧</span><strong>Cinematic photo</strong><small>Rainy neon city</small></button><button data-prompt="A friendly robot reading a book in a cozy library, detailed digital illustration" class="ripple"><span class="suggestion-icon">✦</span><strong>Illustration</strong><small>Robot in a library</small></button><button data-prompt="Minimalist product photo of black wireless headphones on a clean desk, soft studio lighting" class="ripple"><span class="suggestion-icon">◫</span><strong>Product shot</strong><small>Clean studio photography</small></button><button data-prompt="Futuristic DevOps command center, multiple screens, dark modern office, cinematic" class="ripple"><span class="suggestion-icon">◇</span><strong>Concept art</strong><small>DevOps command center</small></button>`}else{$("#heroTitle").textContent="What do you want to build?";$("#heroSubtitle").textContent="Fast local AI with a visual interface that actually feels alive.";$("#messageInput").placeholder="Message Apex AI";$("#suggestions").innerHTML=`<button data-prompt="Explain Kubernetes deployments in simple terms." class="ripple"><span class="suggestion-icon">⌘</span><strong>Explain Kubernetes</strong><small>Make a complex topic simple</small></button><button data-prompt="Write a clean FastAPI app with comments and error handling." class="ripple"><span class="suggestion-icon">‹/›</span><strong>Build something</strong><small>Generate working code</small></button><button data-prompt="Help me design an impressive DevOps portfolio project." class="ripple"><span class="suggestion-icon">◇</span><strong>Plan a project</strong><small>Architecture and milestones</small></button><button data-prompt="Give me a Linux troubleshooting checklist for a slow server." class="ripple"><span class="suggestion-icon">⚙</span><strong>Troubleshoot</strong><small>Work through a problem</small></button>`}bindSuggestions();bindRipples();updateModeHint()}
+function setAppMode(mode){appMode=mode;$("#chatModeBtn").classList.toggle("active",mode==="chat");$("#imageModeBtn").classList.toggle("active",mode==="image");$("#imageOptions").classList.toggle("hidden",mode!=="image");if(mode==="image"){$("#heroTitle").textContent="Create something visual";$("#heroSubtitle").textContent="Fast local image generation with Tiny-SD.";$("#messageInput").placeholder="Describe an image";$("#suggestions").innerHTML=`<button data-prompt="A cinematic rainy city street at night, neon reflections, realistic photography" class="ripple"><span class="suggestion-icon">▧</span><strong>Cinematic photo</strong><small>Rainy neon city</small></button><button data-prompt="A friendly robot reading a book in a cozy library, detailed digital illustration" class="ripple"><span class="suggestion-icon">✦</span><strong>Illustration</strong><small>Robot in a library</small></button><button data-prompt="Minimalist product photo of black wireless headphones on a clean desk, soft studio lighting" class="ripple"><span class="suggestion-icon">◫</span><strong>Product shot</strong><small>Clean studio photography</small></button><button data-prompt="Futuristic DevOps command center, multiple screens, dark modern office, cinematic" class="ripple"><span class="suggestion-icon">◇</span><strong>Concept art</strong><small>DevOps command center</small></button>`}else{$("#heroTitle").textContent="What do you want to build?";$("#heroSubtitle").textContent="Fast local AI with a visual interface that actually feels alive.";$("#messageInput").placeholder="Message Apex AI";$("#suggestions").innerHTML=`<button data-prompt="Explain Kubernetes deployments in simple terms." class="ripple"><span class="suggestion-icon">⌘</span><strong>Explain Kubernetes</strong><small>Make a complex topic simple</small></button><button data-prompt="Write a clean FastAPI app with comments and error handling." class="ripple"><span class="suggestion-icon">‹/›</span><strong>Build something</strong><small>Generate working code</small></button><button data-prompt="Help me design an impressive DevOps portfolio project." class="ripple"><span class="suggestion-icon">◇</span><strong>Plan a project</strong><small>Architecture and milestones</small></button><button data-prompt="Give me a Linux troubleshooting checklist for a slow server." class="ripple"><span class="suggestion-icon">⚙</span><strong>Troubleshoot</strong><small>Work through a problem</small></button>`}bindSuggestions();bindRipples();updateModeHint()}
 function autoResize(){const i=$("#messageInput");i.style.height="auto";i.style.height=Math.min(i.scrollHeight,190)+"px"}
 function openModal(id){closeFloatingMenus();$("#"+id).classList.remove("hidden")}
 function closeModal(id){$("#"+id).classList.add("hidden")}

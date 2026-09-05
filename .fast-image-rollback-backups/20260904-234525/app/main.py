@@ -361,12 +361,16 @@ async def health():
             r = await client.get(f"{IMAGE_ENGINE_BASE_URL}/health")
             if r.is_success:
                 try:
-                    info = r.json()
+                    image_info = r.json()
                 except Exception:
-                    info = {}
-                ready = info.get("status") == "ok" and bool(info.get("model_present"))
-                out["image"] = "ok" if ready else "unavailable"
-                out["image_detail"] = info
+                    image_info = {}
+                ready = (
+                    image_info.get("status") == "ok"
+                    and bool(image_info.get("binary_present"))
+                    and bool(image_info.get("model_present"))
+                )
+                out["image"] = "ok" if ready else "needs_repair"
+                out["image_detail"] = image_info
             else:
                 out["image"] = f"http_{r.status_code}"
     except Exception as exc:
@@ -1033,10 +1037,33 @@ async def generate_image(payload: ImageRequest, user=Depends(current_user)):
         try:
             h = await client.get(f"{IMAGE_ENGINE_BASE_URL}/health")
             h.raise_for_status()
-        except Exception:
+            try:
+                image_info = h.json()
+            except Exception:
+                image_info = {}
+            if not (
+                image_info.get("status") == "ok"
+                and bool(image_info.get("binary_present"))
+                and bool(image_info.get("model_present"))
+            ):
+                missing = []
+                if not image_info.get("binary_present"):
+                    missing.append("stable-diffusion.cpp sd-cli")
+                if not image_info.get("model_present"):
+                    missing.append("DreamShaper model")
+                missing_text = ", ".join(missing) if missing else "required image components"
+                raise HTTPException(
+                    503,
+                    f"DreamShaper image engine needs repair: missing {missing_text}. "
+                    "Run ./repair-image-engine.sh, then restart Apex.",
+                )
+        except HTTPException:
+            raise
+        except Exception as exc:
             raise HTTPException(
                 503,
-                "Image engine is not running. Run ./install-image-engine.sh once, then restart Apex AI.",
+                f"DreamShaper image engine is not reachable: {exc}. "
+                "Run ./repair-image-engine.sh, then restart Apex.",
             )
 
         image_resp = await client.post(
@@ -1061,7 +1088,16 @@ async def generate_image(payload: ImageRequest, user=Depends(current_user)):
                     detail = json.dumps(detail, ensure_ascii=False)
                 except Exception:
                     detail = str(detail)
-            raise HTTPException(502, f"Image engine error: {detail[:1000]}")
+            raise HTTPException(502, f"Image engine error: {detail[:1200]}")
+
+        content_type = (image_resp.headers.get("content-type") or "").lower()
+        if "image/" not in content_type or len(image_resp.content) < 1000:
+            preview = image_resp.text[:800] if ("text" in content_type or "json" in content_type) else ""
+            raise HTTPException(
+                502,
+                "Image engine returned an invalid image response"
+                + (f": {preview}" if preview else "."),
+            )
 
     filename = f"{uuid.uuid4().hex}.png"
     (GENERATED_DIR / filename).write_bytes(image_resp.content)

@@ -1,0 +1,7 @@
+NAME                                 ID              SIZE      MODIFIED     
+huihui_ai/qwen3.5-abliterated:4b     9acbd90c2645    3.3 GB    19 hours ago    
+embeddinggemma:latest                85462619ee72    621 MB    19 hours ago    
+huihui_ai/qwen3.5-abliterated:9b     92a443adb124    6.6 GB    20 hours ago    
+huihui_ai/qwen3-abliterated:1.7b     6bd3771e56ee    1.1 GB    29 hours ago    
+huihui_ai/qwen3-abliterated:4b-v2    9d803f2de433    2.5 GB    30 hours ago    
+qwen3:4b-instruct                    0edcdef34593    2.5 GB    30 hours ago    

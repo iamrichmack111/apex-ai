@@ -162,34 +162,21 @@
 
       <section class="composer-zone">
         <div id="imageOptions" class="image-options hidden glass-strip">
-          <label>Style
-            <select id="imageStyle">
-              <option value="auto">Auto style</option>
-              <option value="anime">Anime / 2D</option>
-              <option value="illustration">Illustration</option>
-              <option value="photo">Photo</option>
-              <option value="cinematic">Cinematic</option>
-              <option value="fantasy">Fantasy</option>
-              <option value="comic">Comic</option>
-              <option value="pixel">Pixel art</option>
-            </select>
-          </label>
           <label>Size
             <select id="imageSize">
-              <option value="512x512">Quality · 512 × 512</option>
-              <option value="384x384">Faster · 384 × 384</option>
-              <option value="512x768">Portrait · 512 × 768</option>
-              <option value="768x512">Landscape · 768 × 512</option>
+              <option value="256x256">Fast preview · 256 → 512</option>
+              <option value="384x384">Medium · 384</option>
+              <option value="512x512">Full · 512</option>
             </select>
           </label>
           <label>Steps
             <select id="imageSteps">
+              <option value="2">Ultra fast · 2</option>
               <option value="4">Fast · 4</option>
-              <option value="6">Balanced · 6</option>
-              <option value="8">Best · 8</option>
+              <option value="8">Better · 8</option>
             </select>
           </label>
-          <span id="imageStatus" class="image-status">DreamShaper 7 + LCM</span>
+          <span id="imageStatus" class="image-status">Tiny-SD local engine</span>
         </div>
 
         <div class="composer glass-panel">
@@ -425,26 +412,14 @@
           <section class="settings-panel" data-panel="image">
             <h3>Image generation</h3>
             <p class="panel-note">Tiny-SD remains the fast local image model.</p>
-            <label class="section-caption">Default style</label>
-            <select id="defaultImageStyle" class="settings-select">
-              <option value="auto">Auto detect</option>
-              <option value="anime">Anime / 2D</option>
-              <option value="illustration">Illustration</option>
-              <option value="photo">Photo</option>
-              <option value="cinematic">Cinematic</option>
-              <option value="fantasy">Fantasy</option>
-              <option value="comic">Comic</option>
-              <option value="pixel">Pixel art</option>
-            </select>
             <label class="section-caption">Default size</label>
             <select id="defaultImageSize" class="settings-select">
-              <option value="512x512">512 × 512 · recommended</option>
-              <option value="384x384">384 × 384 · faster</option>
-              <option value="512x768">512 × 768 · portrait</option>
-              <option value="768x512">768 × 512 · landscape</option>
+              <option value="256x256">256 → 512 · fastest</option>
+              <option value="384x384">384 × 384 · medium</option>
+              <option value="512x512">512 × 512 · slowest</option>
             </select>
             <label class="section-caption">Default steps</label>
-            <div id="imageStepsControl" class="segmented"><button data-image-steps="4">4 · Fast</button><button data-image-steps="6">6 · Balanced</button><button data-image-steps="8">8 · Best</button></div>
+            <div id="imageStepsControl" class="segmented"><button data-image-steps="2">2 · Ultra</button><button data-image-steps="4">4 · Fast</button><button data-image-steps="8">8 · Better</button></div>
             <label class="section-caption">Negative prompt</label>
             <textarea id="imageNegativePrompt" class="settings-textarea" rows="4"></textarea>
           </section>

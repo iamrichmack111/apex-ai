@@ -59,17 +59,9 @@ function applyPrefs(){
   document.body.classList.toggle("spacious",prefs.density==="spacious");
   document.body.classList.toggle("hide-avatars",!prefs.avatars);
   $("#cursorGlow").style.opacity=prefs.cursorGlow?"0.8":"0";
-  const imageStyleEl=$("#imageStyle"),imageSizeEl=$("#imageSize"),imageStepsEl=$("#imageSteps");
-  if(imageStyleEl)imageStyleEl.value=prefs.imageStyle||"auto";
-  if(imageSizeEl){
-    const valid=[...imageSizeEl.options].some(o=>o.value===prefs.imageSize);
-    imageSizeEl.value=valid?prefs.imageSize:"512x512";
-  }
-  if(imageStepsEl){
-    const wanted=String(prefs.imageSteps);
-    const valid=[...imageStepsEl.options].some(o=>o.value===wanted);
-    imageStepsEl.value=valid?wanted:"6";
-  }
+  $("#imageStyle").value=prefs.imageStyle||"auto";
+  $("#imageSize").value=prefs.imageSize;
+  $("#imageSteps").value=String(prefs.imageSteps);
   updateModeHint();
   if(visualEngine){
     visualEngine.setMode(prefs.backgroundMode);
@@ -100,13 +92,7 @@ function fillSettingsForm(){
   $("#temperature").value=prefs.temperature;$("#temperatureValue").textContent=Number(prefs.temperature).toFixed(2);
   $("#maxTokens").value=prefs.maxTokens;$("#maxTokensValue").textContent=prefs.maxTokens;
   $("#contextWindow").value=String(prefs.contextWindow);$("#thinking").checked=!!prefs.thinking;$("#systemPrompt").value=prefs.systemPrompt;
-  const defaultImageStyleEl=$("#defaultImageStyle"),defaultImageSizeEl=$("#defaultImageSize");
-  if(defaultImageStyleEl)defaultImageStyleEl.value=prefs.imageStyle||"auto";
-  if(defaultImageSizeEl){
-    const valid=[...defaultImageSizeEl.options].some(o=>o.value===prefs.imageSize);
-    defaultImageSizeEl.value=valid?prefs.imageSize:"512x512";
-  }
-  $("#imageNegativePrompt").value=prefs.imageNegativePrompt;
+  $("#defaultImageStyle").value=prefs.imageStyle||"auto";$("#defaultImageSize").value=prefs.imageSize;$("#imageNegativePrompt").value=prefs.imageNegativePrompt;
   $("#useKnowledge").checked=!!prefs.useKnowledge;$("#knowledgeResults").value=Number(prefs.knowledgeResults||5);$("#knowledgeResultsValue").textContent=Number(prefs.knowledgeResults||5);
   $("#autoModelRouting").checked=!!prefs.autoModelRouting;$("#maxAutoModelB").value=Number(prefs.maxAutoModelB||9);$("#maxAutoModelBValue").textContent=Number(prefs.maxAutoModelB||9);
   $("#adaptiveThinking").checked=!!prefs.adaptiveThinking;$("#longTermMemory").checked=!!prefs.longTermMemory;$("#autoLearnMemory").checked=!!prefs.autoLearnMemory;$("#conversationSummaries").checked=!!prefs.conversationSummaries;$("#embeddingRerank").checked=!!prefs.embeddingRerank;
@@ -124,10 +110,7 @@ function readSettingsForm(){
   prefs.fontSize=Number($("#fontSize").value);prefs.chatWidth=Number($("#chatWidth").value);prefs.glassStrength=Number($("#glassStrength").value)/100;
   prefs.backgroundIntensity=Number($("#backgroundIntensity").value)/100;prefs.backgroundSpeed=Number($("#backgroundSpeed").value)/100;prefs.backgroundBlur=Number($("#backgroundBlur").value);
   prefs.temperature=Number($("#temperature").value);prefs.maxTokens=Number($("#maxTokens").value);prefs.contextWindow=Number($("#contextWindow").value);prefs.thinking=$("#thinking").checked;prefs.systemPrompt=$("#systemPrompt").value;
-  const defaultStyle=$("#defaultImageStyle");
-  prefs.imageStyle=defaultStyle?defaultStyle.value:"auto";
-  prefs.imageSize=$("#defaultImageSize").value;
-  prefs.imageNegativePrompt=$("#imageNegativePrompt").value;
+  prefs.imageStyle=$("#defaultImageStyle").value;prefs.imageSize=$("#defaultImageSize").value;prefs.imageNegativePrompt=$("#imageNegativePrompt").value;
   prefs.useKnowledge=$("#useKnowledge").checked;prefs.knowledgeResults=Number($("#knowledgeResults").value);
   prefs.autoModelRouting=$("#autoModelRouting").checked;prefs.maxAutoModelB=Number($("#maxAutoModelB").value);prefs.adaptiveThinking=$("#adaptiveThinking").checked;
   prefs.longTermMemory=$("#longTermMemory").checked;prefs.autoLearnMemory=$("#autoLearnMemory").checked;prefs.conversationSummaries=$("#conversationSummaries").checked;prefs.embeddingRerank=$("#embeddingRerank").checked;prefs.memoryResults=Number($("#memoryResults").value)
@@ -159,20 +142,7 @@ function makeImageLoading(){ $("#emptyState").style.display="none";const row=doc
 
 async function loadConfig(){const c=await fetch("/api/config").then(r=>r.json());defaultModel=c.default_model;document.title=c.title}
 async function loadModels(prefer=null){const r=await api("/api/models"),d=await r.json(),sel=$("#modelSelect"),previous=prefer||sel.value||localStorage.getItem("apexLastModel")||"";sel.innerHTML="";if(!d.models.length){const o=document.createElement("option");o.value="";o.textContent="No model installed";sel.appendChild(o)}else{for(const name of d.models){const o=document.createElement("option");o.value=name;o.textContent=name;sel.appendChild(o)}if(d.models.includes(previous))sel.value=previous;else if(d.models.includes(defaultModel))sel.value=defaultModel;else sel.value=d.models[0]}if(sel.value)localStorage.setItem("apexLastModel",sel.value)}
-async function checkHealth(){
-  try{
-    const d=await fetch("/api/health").then(r=>r.json());
-    const ok=d.ollama==="ok";
-    $("#statusDot").className="status-dot "+(ok?"ok":"bad");
-    $("#statusText").textContent=ok?"Ollama connected":"Ollama unavailable";
-    $("#imageEngineDot").className="mini-dot "+(d.image==="ok"?"ok":"");
-    $("#imageStatus").textContent=d.image==="ok"?"DreamShaper ready":"DreamShaper not ready";
-  }catch{
-    $("#statusDot").className="status-dot bad";
-    $("#statusText").textContent="Backend unavailable";
-    $("#imageStatus").textContent="Image engine unavailable";
-  }
-}
+async function checkHealth(){try{const d=await fetch("/api/health").then(r=>r.json()),ok=d.ollama==="ok";$("#statusDot").className="status-dot "+(ok?"ok":"bad");$("#statusText").textContent=ok?"Ollama connected":"Ollama unavailable";$("#imageEngineDot").className="mini-dot "+(d.image==="ok"?"ok":"");$("#imageStatus").textContent=d.image==="ok"?"Tiny-SD ready":"Image engine unavailable"}catch{$("#statusDot").className="status-dot bad";$("#statusText").textContent="Backend unavailable";$("#imageStatus").textContent="Image engine unavailable"}}
 
 function renderConversationRows(rows){const list=$("#conversationList");list.innerHTML="";const pinned=rows.filter(c=>Number(c.pinned)===1),recent=rows.filter(c=>Number(c.pinned)!==1);const addSection=(label,items)=>{if(!items.length)return;const h=document.createElement("div");h.className="chat-section-label";h.textContent=label;list.appendChild(h);for(const c of items){const item=document.createElement("div");item.className="conversation-item"+(c.id===currentConversationId?" active":"");item.dataset.id=c.id;item.innerHTML=`${Number(c.pinned)===1?'<span class="conversation-pin">◆</span>':'<span class="conversation-pin"></span>'}<span class="conversation-title"></span><button class="conversation-more">•••</button>`;item.querySelector(".conversation-title").textContent=c.title;item.querySelector(".conversation-title").onclick=()=>loadConversation(c.id);item.querySelector(".conversation-more").onclick=e=>{e.stopPropagation();chatMenuConversation=c;$("#chatPinLabel").textContent=Number(c.pinned)===1?"Unpin chat":"Pin chat";openAnchoredMenu($("#chatMenu"),e.currentTarget,"below")};list.appendChild(item)}};addSection("Pinned",pinned);addSection("Recent",recent)}
 async function refreshConversations(q=""){const r=await api(`/api/conversations${q?`?q=${encodeURIComponent(q)}`:""}`),rows=await r.json();renderConversationRows(rows)}
@@ -223,65 +193,11 @@ async function consumeChatStream(r,ai){
 }
 async function sendChat(text){const model=$("#modelSelect").value;if(!model){openModal("modelModal");return}if(!currentConversationId)await newConversation();makeMessage("user",text,null,"text",new Date().toISOString());const ai=makeMessage("assistant","",null,"text",new Date().toISOString());ai.body.classList.add("typing");activeController=new AbortController();setBusy(true,true);try{const r=await api("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({conversation_id:currentConversationId,message:text,...chatPayloadBase()}),signal:activeController.signal});await consumeChatStream(r,ai);playFinishSound()}catch(err){if(err.name==="AbortError"){if(!ai.body.textContent.trim())ai.row.remove();else ai.body.innerHTML+=`<p><em>Stopped.</em></p>`}else ai.body.innerHTML=renderMarkdown(`**Error:** ${err.message}`)}finally{ai.body.classList.remove("typing");activeController=null;setBusy(false);await refreshConversations($("#chatSearch").value.trim());$("#messageInput").focus()}}
 async function regenerateLast(){if(!currentConversationId||isStreaming)return;const ai=makeMessage("assistant","",null,"text",new Date().toISOString());ai.body.classList.add("typing");activeController=new AbortController();setBusy(true,true);try{const r=await api("/api/chat/regenerate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({conversation_id:currentConversationId,...chatPayloadBase()}),signal:activeController.signal});await consumeChatStream(r,ai);playFinishSound()}catch(err){if(err.name==="AbortError")ai.row.remove();else ai.body.innerHTML=renderMarkdown(`**Error:** ${err.message}`)}finally{ai.body.classList.remove("typing");activeController=null;setBusy(false);await refreshConversations($("#chatSearch").value.trim())}}
-async function sendImage(text){
-  if(!currentConversationId)await newConversation();
-  makeMessage("user",text,null,"text",new Date().toISOString());
-  const loading=makeImageLoading();
-  setBusy(true,false);
-  try{
-    const styleEl=$("#imageStyle"),sizeEl=$("#imageSize"),stepsEl=$("#imageSteps");
-    const style=(styleEl&&styleEl.value)?styleEl.value:(prefs.imageStyle||"auto");
-    const size=(sizeEl&&sizeEl.value)?sizeEl.value:"512x512";
-    const steps=Number((stepsEl&&stepsEl.value)?stepsEl.value:6);
-    const [w,h]=size.split("x").map(Number);
-
-    const r=await api("/api/image/generate",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        conversation_id:currentConversationId,
-        prompt:text,
-        negative_prompt:prefs.imageNegativePrompt,
-        width:w,
-        height:h,
-        steps,
-        style
-      })
-    });
-
-    const raw=await r.text();
-    let d={};
-    try{d=raw?JSON.parse(raw):{}}catch{d={detail:raw}}
-    if(!r.ok){
-      let detail=d.detail!==undefined?d.detail:d;
-      if(typeof detail!=="string"){
-        try{detail=JSON.stringify(detail)}catch{detail=String(detail)}
-      }
-      throw new Error(detail||"Image generation failed");
-    }
-    if(!d.image_url)throw new Error("Image engine did not return an image.");
-
-    loading.remove();
-    makeMessage("assistant",`Generated image for: ${text}`,d.image_url,"image",new Date().toISOString());
-    playFinishSound();
-  }catch(err){
-    const el=loading.querySelector(".image-loading")||loading.querySelector(".message-body");
-    if(el){
-      el.className="message-body";
-      el.innerHTML=renderMarkdown(`**Image error:** ${err&&err.message?err.message:String(err)}`);
-    }
-  }finally{
-    setBusy(false);
-    checkHealth();
-    await refreshConversations($("#chatSearch").value.trim());
-    $("#messageInput").focus();
-  }
-}
-
+async function sendImage(text){if(!currentConversationId)await newConversation();makeMessage("user",text,null,"text",new Date().toISOString());const loading=makeImageLoading();setBusy(true,false);try{const [w,h]=$("#imageSize").value.split("x").map(Number),steps=Number($("#imageSteps").value),r=await api("/api/image/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({conversation_id:currentConversationId,prompt:text,negative_prompt:prefs.imageNegativePrompt,width:w,height:h,steps,style:$("#imageStyle").value||prefs.imageStyle||"auto"})}),d=await r.json();if(!r.ok)throw new Error(d.detail||"Image generation failed");loading.remove();makeMessage("assistant",`Generated image for: ${text}`,d.image_url,"image",new Date().toISOString());playFinishSound()}catch(err){const el=loading.querySelector(".image-loading");el.className="message-body";el.innerHTML=renderMarkdown(`**Image error:** ${err.message}`)}finally{setBusy(false);checkHealth();await refreshConversations($("#chatSearch").value.trim());$("#messageInput").focus()}}
 async function sendMessage(textOverride=null){if(isStreaming)return;const input=$("#messageInput"),text=(textOverride??input.value).trim();if(!text)return;input.value="";autoResize();if(appMode==="image")await sendImage(text);else await sendChat(text)}
 
 function bindSuggestions(){$$("#suggestions button").forEach(b=>b.onclick=()=>sendMessage(b.dataset.prompt))}
-function setAppMode(mode){appMode=mode;$("#chatModeBtn").classList.toggle("active",mode==="chat");$("#imageModeBtn").classList.toggle("active",mode==="image");$("#imageOptions").classList.toggle("hidden",mode!=="image");if(mode==="image"){$("#heroTitle").textContent="Create something visual";$("#heroSubtitle").textContent="Higher-quality local images with DreamShaper 7 + LCM.";$("#messageInput").placeholder="Describe an image";$("#suggestions").innerHTML=`<button data-prompt="A cinematic rainy city street at night, neon reflections, realistic photography" class="ripple"><span class="suggestion-icon">▧</span><strong>Cinematic photo</strong><small>Rainy neon city</small></button><button data-prompt="A friendly robot reading a book in a cozy library, detailed digital illustration" class="ripple"><span class="suggestion-icon">✦</span><strong>Illustration</strong><small>Robot in a library</small></button><button data-prompt="Minimalist product photo of black wireless headphones on a clean desk, soft studio lighting" class="ripple"><span class="suggestion-icon">◫</span><strong>Product shot</strong><small>Clean studio photography</small></button><button data-prompt="Futuristic DevOps command center, multiple screens, dark modern office, cinematic" class="ripple"><span class="suggestion-icon">◇</span><strong>Concept art</strong><small>DevOps command center</small></button>`}else{$("#heroTitle").textContent="What do you want to build?";$("#heroSubtitle").textContent="Fast local AI with a visual interface that actually feels alive.";$("#messageInput").placeholder="Message Apex AI";$("#suggestions").innerHTML=`<button data-prompt="Explain Kubernetes deployments in simple terms." class="ripple"><span class="suggestion-icon">⌘</span><strong>Explain Kubernetes</strong><small>Make a complex topic simple</small></button><button data-prompt="Write a clean FastAPI app with comments and error handling." class="ripple"><span class="suggestion-icon">‹/›</span><strong>Build something</strong><small>Generate working code</small></button><button data-prompt="Help me design an impressive DevOps portfolio project." class="ripple"><span class="suggestion-icon">◇</span><strong>Plan a project</strong><small>Architecture and milestones</small></button><button data-prompt="Give me a Linux troubleshooting checklist for a slow server." class="ripple"><span class="suggestion-icon">⚙</span><strong>Troubleshoot</strong><small>Work through a problem</small></button>`}bindSuggestions();bindRipples();updateModeHint()}
+function setAppMode(mode){appMode=mode;$("#chatModeBtn").classList.toggle("active",mode==="chat");$("#imageModeBtn").classList.toggle("active",mode==="image");$("#imageOptions").classList.toggle("hidden",mode!=="image");if(mode==="image"){$("#heroTitle").textContent="Create something visual";$("#heroSubtitle").textContent="Higher-quality local images with DreamShaper LCM.";$("#messageInput").placeholder="Describe an image";$("#suggestions").innerHTML=`<button data-prompt="A cinematic rainy city street at night, neon reflections, realistic photography" class="ripple"><span class="suggestion-icon">▧</span><strong>Cinematic photo</strong><small>Rainy neon city</small></button><button data-prompt="A friendly robot reading a book in a cozy library, detailed digital illustration" class="ripple"><span class="suggestion-icon">✦</span><strong>Illustration</strong><small>Robot in a library</small></button><button data-prompt="Minimalist product photo of black wireless headphones on a clean desk, soft studio lighting" class="ripple"><span class="suggestion-icon">◫</span><strong>Product shot</strong><small>Clean studio photography</small></button><button data-prompt="Futuristic DevOps command center, multiple screens, dark modern office, cinematic" class="ripple"><span class="suggestion-icon">◇</span><strong>Concept art</strong><small>DevOps command center</small></button>`}else{$("#heroTitle").textContent="What do you want to build?";$("#heroSubtitle").textContent="Fast local AI with a visual interface that actually feels alive.";$("#messageInput").placeholder="Message Apex AI";$("#suggestions").innerHTML=`<button data-prompt="Explain Kubernetes deployments in simple terms." class="ripple"><span class="suggestion-icon">⌘</span><strong>Explain Kubernetes</strong><small>Make a complex topic simple</small></button><button data-prompt="Write a clean FastAPI app with comments and error handling." class="ripple"><span class="suggestion-icon">‹/›</span><strong>Build something</strong><small>Generate working code</small></button><button data-prompt="Help me design an impressive DevOps portfolio project." class="ripple"><span class="suggestion-icon">◇</span><strong>Plan a project</strong><small>Architecture and milestones</small></button><button data-prompt="Give me a Linux troubleshooting checklist for a slow server." class="ripple"><span class="suggestion-icon">⚙</span><strong>Troubleshoot</strong><small>Work through a problem</small></button>`}bindSuggestions();bindRipples();updateModeHint()}
 function autoResize(){const i=$("#messageInput");i.style.height="auto";i.style.height=Math.min(i.scrollHeight,190)+"px"}
 function openModal(id){closeFloatingMenus();$("#"+id).classList.remove("hidden")}
 function closeModal(id){$("#"+id).classList.add("hidden")}

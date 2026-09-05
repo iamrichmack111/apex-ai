@@ -30,6 +30,21 @@ let visualEngine=null;
 function authHeaders(extra={}){return {...extra,...(token?{Authorization:`Bearer ${token}`}:{})}}
 async function api(url,options={}){options.headers=authHeaders(options.headers||{});const r=await fetch(url,options);if(r.status===401){logoutLocal();throw new Error("Please log in again.")}return r}
 function escapeHtml(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function apiErrorText(value){
+  if(value==null)return "Unknown error";
+  if(typeof value==="string")return value;
+  if(Array.isArray(value))return value.map(apiErrorText).join("; ");
+  if(typeof value==="object"){
+    if(typeof value.msg==="string"){
+      const loc=Array.isArray(value.loc)?value.loc.join(" → "):"";
+      return loc?`${loc}: ${value.msg}`:value.msg;
+    }
+    if(value.detail!==undefined)return apiErrorText(value.detail);
+    if(value.error!==undefined)return apiErrorText(value.error);
+    try{return JSON.stringify(value)}catch{return String(value)}
+  }
+  return String(value);
+}
 function renderMarkdown(text=""){
   const escaped=escapeHtml(text),parts=escaped.split(/```/);
   return parts.map((part,i)=>{
@@ -59,17 +74,9 @@ function applyPrefs(){
   document.body.classList.toggle("spacious",prefs.density==="spacious");
   document.body.classList.toggle("hide-avatars",!prefs.avatars);
   $("#cursorGlow").style.opacity=prefs.cursorGlow?"0.8":"0";
-  const imageStyleEl=$("#imageStyle"),imageSizeEl=$("#imageSize"),imageStepsEl=$("#imageSteps");
-  if(imageStyleEl)imageStyleEl.value=prefs.imageStyle||"auto";
-  if(imageSizeEl){
-    const valid=[...imageSizeEl.options].some(o=>o.value===prefs.imageSize);
-    imageSizeEl.value=valid?prefs.imageSize:"512x512";
-  }
-  if(imageStepsEl){
-    const wanted=String(prefs.imageSteps);
-    const valid=[...imageStepsEl.options].some(o=>o.value===wanted);
-    imageStepsEl.value=valid?wanted:"6";
-  }
+  $("#imageStyle").value=prefs.imageStyle||"auto";
+  $("#imageSize").value=prefs.imageSize;
+  $("#imageSteps").value=String(prefs.imageSteps);
   updateModeHint();
   if(visualEngine){
     visualEngine.setMode(prefs.backgroundMode);
@@ -100,13 +107,7 @@ function fillSettingsForm(){
   $("#temperature").value=prefs.temperature;$("#temperatureValue").textContent=Number(prefs.temperature).toFixed(2);
   $("#maxTokens").value=prefs.maxTokens;$("#maxTokensValue").textContent=prefs.maxTokens;
   $("#contextWindow").value=String(prefs.contextWindow);$("#thinking").checked=!!prefs.thinking;$("#systemPrompt").value=prefs.systemPrompt;
-  const defaultImageStyleEl=$("#defaultImageStyle"),defaultImageSizeEl=$("#defaultImageSize");
-  if(defaultImageStyleEl)defaultImageStyleEl.value=prefs.imageStyle||"auto";
-  if(defaultImageSizeEl){
-    const valid=[...defaultImageSizeEl.options].some(o=>o.value===prefs.imageSize);
-    defaultImageSizeEl.value=valid?prefs.imageSize:"512x512";
-  }
-  $("#imageNegativePrompt").value=prefs.imageNegativePrompt;
+  $("#defaultImageStyle").value=prefs.imageStyle||"auto";$("#defaultImageSize").value=prefs.imageSize;$("#imageNegativePrompt").value=prefs.imageNegativePrompt;
   $("#useKnowledge").checked=!!prefs.useKnowledge;$("#knowledgeResults").value=Number(prefs.knowledgeResults||5);$("#knowledgeResultsValue").textContent=Number(prefs.knowledgeResults||5);
   $("#autoModelRouting").checked=!!prefs.autoModelRouting;$("#maxAutoModelB").value=Number(prefs.maxAutoModelB||9);$("#maxAutoModelBValue").textContent=Number(prefs.maxAutoModelB||9);
   $("#adaptiveThinking").checked=!!prefs.adaptiveThinking;$("#longTermMemory").checked=!!prefs.longTermMemory;$("#autoLearnMemory").checked=!!prefs.autoLearnMemory;$("#conversationSummaries").checked=!!prefs.conversationSummaries;$("#embeddingRerank").checked=!!prefs.embeddingRerank;
@@ -124,10 +125,7 @@ function readSettingsForm(){
   prefs.fontSize=Number($("#fontSize").value);prefs.chatWidth=Number($("#chatWidth").value);prefs.glassStrength=Number($("#glassStrength").value)/100;
   prefs.backgroundIntensity=Number($("#backgroundIntensity").value)/100;prefs.backgroundSpeed=Number($("#backgroundSpeed").value)/100;prefs.backgroundBlur=Number($("#backgroundBlur").value);
   prefs.temperature=Number($("#temperature").value);prefs.maxTokens=Number($("#maxTokens").value);prefs.contextWindow=Number($("#contextWindow").value);prefs.thinking=$("#thinking").checked;prefs.systemPrompt=$("#systemPrompt").value;
-  const defaultStyle=$("#defaultImageStyle");
-  prefs.imageStyle=defaultStyle?defaultStyle.value:"auto";
-  prefs.imageSize=$("#defaultImageSize").value;
-  prefs.imageNegativePrompt=$("#imageNegativePrompt").value;
+  prefs.imageStyle=$("#defaultImageStyle").value;prefs.imageSize=$("#defaultImageSize").value;prefs.imageNegativePrompt=$("#imageNegativePrompt").value;
   prefs.useKnowledge=$("#useKnowledge").checked;prefs.knowledgeResults=Number($("#knowledgeResults").value);
   prefs.autoModelRouting=$("#autoModelRouting").checked;prefs.maxAutoModelB=Number($("#maxAutoModelB").value);prefs.adaptiveThinking=$("#adaptiveThinking").checked;
   prefs.longTermMemory=$("#longTermMemory").checked;prefs.autoLearnMemory=$("#autoLearnMemory").checked;prefs.conversationSummaries=$("#conversationSummaries").checked;prefs.embeddingRerank=$("#embeddingRerank").checked;prefs.memoryResults=Number($("#memoryResults").value)
@@ -165,8 +163,21 @@ async function checkHealth(){
     const ok=d.ollama==="ok";
     $("#statusDot").className="status-dot "+(ok?"ok":"bad");
     $("#statusText").textContent=ok?"Ollama connected":"Ollama unavailable";
-    $("#imageEngineDot").className="mini-dot "+(d.image==="ok"?"ok":"");
-    $("#imageStatus").textContent=d.image==="ok"?"DreamShaper ready":"DreamShaper not ready";
+
+    if(d.image==="ok"){
+      $("#imageEngineDot").className="mini-dot ok";
+      $("#imageStatus").textContent="DreamShaper ready";
+    }else if(d.image==="needs_repair"){
+      $("#imageEngineDot").className="mini-dot";
+      const info=d.image_detail||{};
+      const missing=[];
+      if(!info.binary_present)missing.push("engine");
+      if(!info.model_present)missing.push("model");
+      $("#imageStatus").textContent="DreamShaper repair needed"+(missing.length?" · "+missing.join(" + "):"");
+    }else{
+      $("#imageEngineDot").className="mini-dot";
+      $("#imageStatus").textContent="DreamShaper unavailable";
+    }
   }catch{
     $("#statusDot").className="status-dot bad";
     $("#statusText").textContent="Backend unavailable";
@@ -229,12 +240,8 @@ async function sendImage(text){
   const loading=makeImageLoading();
   setBusy(true,false);
   try{
-    const styleEl=$("#imageStyle"),sizeEl=$("#imageSize"),stepsEl=$("#imageSteps");
-    const style=(styleEl&&styleEl.value)?styleEl.value:(prefs.imageStyle||"auto");
-    const size=(sizeEl&&sizeEl.value)?sizeEl.value:"512x512";
-    const steps=Number((stepsEl&&stepsEl.value)?stepsEl.value:6);
-    const [w,h]=size.split("x").map(Number);
-
+    const [w,h]=$("#imageSize").value.split("x").map(Number);
+    const steps=Number($("#imageSteps").value);
     const r=await api("/api/image/generate",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
@@ -245,21 +252,16 @@ async function sendImage(text){
         width:w,
         height:h,
         steps,
-        style
+        style:$("#imageStyle").value||prefs.imageStyle||"auto"
       })
     });
 
     const raw=await r.text();
     let d={};
     try{d=raw?JSON.parse(raw):{}}catch{d={detail:raw}}
-    if(!r.ok){
-      let detail=d.detail!==undefined?d.detail:d;
-      if(typeof detail!=="string"){
-        try{detail=JSON.stringify(detail)}catch{detail=String(detail)}
-      }
-      throw new Error(detail||"Image generation failed");
-    }
-    if(!d.image_url)throw new Error("Image engine did not return an image.");
+
+    if(!r.ok)throw new Error(apiErrorText(d.detail!==undefined?d.detail:d));
+    if(!d.image_url)throw new Error("Image engine completed but did not return an image URL.");
 
     loading.remove();
     makeMessage("assistant",`Generated image for: ${text}`,d.image_url,"image",new Date().toISOString());
@@ -268,7 +270,7 @@ async function sendImage(text){
     const el=loading.querySelector(".image-loading")||loading.querySelector(".message-body");
     if(el){
       el.className="message-body";
-      el.innerHTML=renderMarkdown(`**Image error:** ${err&&err.message?err.message:String(err)}`);
+      el.innerHTML=renderMarkdown(`**Image error:** ${apiErrorText(err && err.message ? err.message : err)}`);
     }
   }finally{
     setBusy(false);
@@ -281,7 +283,7 @@ async function sendImage(text){
 async function sendMessage(textOverride=null){if(isStreaming)return;const input=$("#messageInput"),text=(textOverride??input.value).trim();if(!text)return;input.value="";autoResize();if(appMode==="image")await sendImage(text);else await sendChat(text)}
 
 function bindSuggestions(){$$("#suggestions button").forEach(b=>b.onclick=()=>sendMessage(b.dataset.prompt))}
-function setAppMode(mode){appMode=mode;$("#chatModeBtn").classList.toggle("active",mode==="chat");$("#imageModeBtn").classList.toggle("active",mode==="image");$("#imageOptions").classList.toggle("hidden",mode!=="image");if(mode==="image"){$("#heroTitle").textContent="Create something visual";$("#heroSubtitle").textContent="Higher-quality local images with DreamShaper 7 + LCM.";$("#messageInput").placeholder="Describe an image";$("#suggestions").innerHTML=`<button data-prompt="A cinematic rainy city street at night, neon reflections, realistic photography" class="ripple"><span class="suggestion-icon">▧</span><strong>Cinematic photo</strong><small>Rainy neon city</small></button><button data-prompt="A friendly robot reading a book in a cozy library, detailed digital illustration" class="ripple"><span class="suggestion-icon">✦</span><strong>Illustration</strong><small>Robot in a library</small></button><button data-prompt="Minimalist product photo of black wireless headphones on a clean desk, soft studio lighting" class="ripple"><span class="suggestion-icon">◫</span><strong>Product shot</strong><small>Clean studio photography</small></button><button data-prompt="Futuristic DevOps command center, multiple screens, dark modern office, cinematic" class="ripple"><span class="suggestion-icon">◇</span><strong>Concept art</strong><small>DevOps command center</small></button>`}else{$("#heroTitle").textContent="What do you want to build?";$("#heroSubtitle").textContent="Fast local AI with a visual interface that actually feels alive.";$("#messageInput").placeholder="Message Apex AI";$("#suggestions").innerHTML=`<button data-prompt="Explain Kubernetes deployments in simple terms." class="ripple"><span class="suggestion-icon">⌘</span><strong>Explain Kubernetes</strong><small>Make a complex topic simple</small></button><button data-prompt="Write a clean FastAPI app with comments and error handling." class="ripple"><span class="suggestion-icon">‹/›</span><strong>Build something</strong><small>Generate working code</small></button><button data-prompt="Help me design an impressive DevOps portfolio project." class="ripple"><span class="suggestion-icon">◇</span><strong>Plan a project</strong><small>Architecture and milestones</small></button><button data-prompt="Give me a Linux troubleshooting checklist for a slow server." class="ripple"><span class="suggestion-icon">⚙</span><strong>Troubleshoot</strong><small>Work through a problem</small></button>`}bindSuggestions();bindRipples();updateModeHint()}
+function setAppMode(mode){appMode=mode;$("#chatModeBtn").classList.toggle("active",mode==="chat");$("#imageModeBtn").classList.toggle("active",mode==="image");$("#imageOptions").classList.toggle("hidden",mode!=="image");if(mode==="image"){$("#heroTitle").textContent="Create something visual";$("#heroSubtitle").textContent="Higher-quality local images with DreamShaper LCM.";$("#messageInput").placeholder="Describe an image";$("#suggestions").innerHTML=`<button data-prompt="A cinematic rainy city street at night, neon reflections, realistic photography" class="ripple"><span class="suggestion-icon">▧</span><strong>Cinematic photo</strong><small>Rainy neon city</small></button><button data-prompt="A friendly robot reading a book in a cozy library, detailed digital illustration" class="ripple"><span class="suggestion-icon">✦</span><strong>Illustration</strong><small>Robot in a library</small></button><button data-prompt="Minimalist product photo of black wireless headphones on a clean desk, soft studio lighting" class="ripple"><span class="suggestion-icon">◫</span><strong>Product shot</strong><small>Clean studio photography</small></button><button data-prompt="Futuristic DevOps command center, multiple screens, dark modern office, cinematic" class="ripple"><span class="suggestion-icon">◇</span><strong>Concept art</strong><small>DevOps command center</small></button>`}else{$("#heroTitle").textContent="What do you want to build?";$("#heroSubtitle").textContent="Fast local AI with a visual interface that actually feels alive.";$("#messageInput").placeholder="Message Apex AI";$("#suggestions").innerHTML=`<button data-prompt="Explain Kubernetes deployments in simple terms." class="ripple"><span class="suggestion-icon">⌘</span><strong>Explain Kubernetes</strong><small>Make a complex topic simple</small></button><button data-prompt="Write a clean FastAPI app with comments and error handling." class="ripple"><span class="suggestion-icon">‹/›</span><strong>Build something</strong><small>Generate working code</small></button><button data-prompt="Help me design an impressive DevOps portfolio project." class="ripple"><span class="suggestion-icon">◇</span><strong>Plan a project</strong><small>Architecture and milestones</small></button><button data-prompt="Give me a Linux troubleshooting checklist for a slow server." class="ripple"><span class="suggestion-icon">⚙</span><strong>Troubleshoot</strong><small>Work through a problem</small></button>`}bindSuggestions();bindRipples();updateModeHint()}
 function autoResize(){const i=$("#messageInput");i.style.height="auto";i.style.height=Math.min(i.scrollHeight,190)+"px"}
 function openModal(id){closeFloatingMenus();$("#"+id).classList.remove("hidden")}
 function closeModal(id){$("#"+id).classList.add("hidden")}

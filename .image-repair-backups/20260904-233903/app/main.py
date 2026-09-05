@@ -359,19 +359,9 @@ async def health():
     try:
         async with httpx.AsyncClient(timeout=2.5) as client:
             r = await client.get(f"{IMAGE_ENGINE_BASE_URL}/health")
-            if r.is_success:
-                try:
-                    info = r.json()
-                except Exception:
-                    info = {}
-                ready = info.get("status") == "ok" and bool(info.get("model_present"))
-                out["image"] = "ok" if ready else "unavailable"
-                out["image_detail"] = info
-            else:
-                out["image"] = f"http_{r.status_code}"
-    except Exception as exc:
+            out["image"] = "ok" if r.is_success else f"http_{r.status_code}"
+    except Exception:
         out["image"] = "unavailable"
-        out["image_detail"] = {"error": str(exc)}
     return out
 
 
@@ -1052,16 +1042,10 @@ async def generate_image(payload: ImageRequest, user=Depends(current_user)):
         )
         if image_resp.status_code >= 400:
             try:
-                parsed = image_resp.json()
-                detail = parsed.get("detail", parsed) if isinstance(parsed, dict) else parsed
+                detail = image_resp.json().get("detail", image_resp.text)
             except Exception:
                 detail = image_resp.text
-            if not isinstance(detail, str):
-                try:
-                    detail = json.dumps(detail, ensure_ascii=False)
-                except Exception:
-                    detail = str(detail)
-            raise HTTPException(502, f"Image engine error: {detail[:1000]}")
+            raise HTTPException(502, f"Image engine error: {detail[:600]}")
 
     filename = f"{uuid.uuid4().hex}.png"
     (GENERATED_DIR / filename).write_bytes(image_resp.content)
